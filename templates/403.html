@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block titulo %}Acceso restringido{% endblock %}
+{% block contenido %}
+<div class="tarjeta tarjeta-form text-center p-5">
+  <div class="icono-titulo bg-danger-subtle text-danger mx-auto"><i class="bi bi-shield-x"></i></div>
+  <h3>Acceso restringido</h3>
+  <p class="text-muted">Tu tipo de usuario no tiene permiso para ver esta sección.</p>
+  <a class="btn btn-primary" href="{% url 'inicio' %}"><i class="bi bi-house me-1"></i>Volver al inicio</a>
+</div>
+{% endblock %}

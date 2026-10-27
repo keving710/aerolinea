@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block titulo %}Mi perfil{% endblock %}
+{% block contenido %}<div class="tarjeta tarjeta-form ancha"><div class="card-body p-4 p-md-5">
+<div class="d-flex align-items-center gap-3 mb-4">
+  {% if user.foto %}<img class="avatar avatar-grande" src="{{ user.foto.url }}" alt="Foto de perfil">{% else %}<span class="avatar avatar-grande">{{ user.iniciales }}</span>{% endif %}
+  <div><h3 class="mb-0">{{ user.nombre_completo }}</h3><span class="badge text-bg-primary">{{ user.get_rol_display }}</span> <span class="text-muted ms-1">@{{ user.username }}</span></div>
+</div>
+<p class="text-muted">Mantén tus datos al día. La imagen de perfil es opcional (JPG o PNG, máximo 2 MB).</p>
+<form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}{% include "_form.html" %}<button class="btn btn-primary w-100 mt-4 btn-lg">Guardar cambios</button></form>
+</div></div>{% endblock %}

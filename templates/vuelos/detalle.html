@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% block titulo %}Vuelo {{ vuelo.codigo }}{% endblock %}
+{% block contenido %}<div class="tarjeta tarjeta-form ancha"><div class="card-body p-4 p-md-5">
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+  <div><div class="codigo text-muted fw-semibold">{{ vuelo.codigo }}</div><h3 class="mb-1">{{ vuelo.origen }} → {{ vuelo.destino }}</h3>
+  <span class="badge {% if vuelo.tipo == 'nacional' %}text-bg-primary{% else %}text-bg-info{% endif %}">{{ vuelo.get_tipo_display }}</span>
+  <span class="badge text-bg-success">{{ vuelo.get_estado_display }}</span>
+  {% if vuelo.es_regreso %}<span class="badge text-bg-secondary">Regreso de <a class="text-white" href="{% url 'vuelos:detalle' vuelo.vuelo_ida.codigo %}">{{ vuelo.vuelo_ida.codigo }}</a></span>{% endif %}</div>
+  <div class="text-end"><div class="text-muted small">Por persona</div><div class="fs-3 fw-bold" style="color:var(--marca)">${{ vuelo.costo_persona|floatformat:"0g" }}</div></div>
+</div>
+<div class="linea-ruta"><span class="punto"></span><span class="trazo"><i class="bi bi-airplane-fill"></i></span><span class="punto"></span></div>
+<div class="row g-3 mb-3">
+  <div class="col-md-6"><div class="dato"><small>Salida · hora de {{ vuelo.origen }}</small><b class="fs-5">{{ vuelo.salida_local }}</b></div></div>
+  <div class="col-md-6"><div class="dato"><small>Llegada · hora de {{ vuelo.destino }}</small><b class="fs-5">{{ vuelo.llegada_local }}</b></div></div>
+  <div class="col-6 col-md-6"><div class="dato"><small>Duración</small><b>{{ vuelo.duracion_texto }}</b></div></div>
+  <div class="col-6 col-md-6"><div class="dato"><small>Capacidad</small><b>{{ vuelo.capacidad }} sillas</b></div></div>
+</div>
+{% if vuelo.vuelo_regreso %}<div class="alert alert-info">Vuelo de regreso programado: <a class="fw-semibold" href="{% url 'vuelos:detalle' vuelo.vuelo_regreso.codigo %}">{{ vuelo.vuelo_regreso.codigo }}</a></div>{% endif %}
+{% if vuelo.tipo == "internacional" and not vuelo.es_regreso and not vuelo.vuelo_regreso %}
+<a class="btn btn-outline-primary" href="{% url 'vuelos:regreso' vuelo.codigo %}"><i class="bi bi-arrow-return-left me-1"></i>Agregar vuelo de regreso</a>{% endif %}
+<a class="btn btn-link" href="{% url 'vuelos:lista' %}">Volver a la lista</a>
+</div></div>{% endblock %}

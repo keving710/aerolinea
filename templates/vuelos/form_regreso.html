@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block titulo %}Vuelo de regreso{% endblock %}
+{% block contenido %}<div class="tarjeta tarjeta-form ancha"><div class="card-body p-4 p-md-5">
+<div class="icono-titulo"><i class="bi bi-arrow-return-left"></i></div>
+<h3>Vuelo de regreso</h3>
+<div class="alert alert-info">Regreso de <b>{{ ida.codigo }}</b>: {{ ida.destino }} → {{ ida.origen }}. El vuelo de ida llega el {{ ida.llegada_local }} (hora de {{ ida.destino }}); la salida del regreso se interpreta en la hora de {{ ida.destino }}.</div>
+<form method="post" novalidate>{% csrf_token %}{% include "_form.html" %}<button class="btn btn-primary w-100 mt-4 btn-lg">Validar y programar</button></form>
+</div></div>{% endblock %}

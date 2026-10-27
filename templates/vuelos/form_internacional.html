@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block titulo %}Nuevo vuelo internacional{% endblock %}
+{% block contenido %}<div class="tarjeta tarjeta-form ancha"><div class="card-body p-4 p-md-5">
+<div class="icono-titulo"><i class="bi bi-globe-americas"></i></div>
+<h3>Nuevo vuelo internacional</h3>
+<p class="text-muted">Orígenes: Pereira, Bogotá, Medellín, Cali y Cartagena. La llegada se calcula en la hora local del destino; la capacidad es de 250 sillas.</p>
+<form method="post" novalidate>{% csrf_token %}{% include "_form.html" %}<button class="btn btn-primary w-100 mt-4 btn-lg">Validar y programar</button></form>
+</div></div>{% endblock %}

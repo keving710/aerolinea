@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titulo %}Inicio{% endblock %}
+{% block contenido %}
+<section class="hero mb-4">
+  <i class="bi bi-airplane-fill avion"></i>
+  <div class="position-relative" style="max-width:640px">
+    <h1>Viaja por Colombia y el mundo</h1>
+    <p class="mb-4">Compra y reserva tiquetes aéreos nacionales e internacionales desde un solo lugar.</p>
+    {% if not user.is_authenticated %}
+      <a class="btn btn-light btn-lg me-2 fw-semibold" href="{% url 'usuarios:registro' %}"><i class="bi bi-person-plus me-1"></i>Crear cuenta</a>
+      <a class="btn btn-outline-light btn-lg" href="{% url 'usuarios:login' %}">Iniciar sesión</a>
+    {% elif user.es_cliente %}
+      <p class="fs-5 mb-1">Hola, {{ user.first_name|default:user.username }} 👋</p>
+      <p class="mb-0">La búsqueda y compra de vuelos estará disponible muy pronto.</p>
+    {% elif user.es_administrador %}
+      <a class="btn btn-light btn-lg fw-semibold" href="{% url 'vuelos:lista' %}"><i class="bi bi-list-ul me-1"></i>Ir a los vuelos</a>
+    {% else %}
+      <a class="btn btn-light btn-lg fw-semibold" href="{% url 'usuarios:administradores' %}"><i class="bi bi-people me-1"></i>Gestionar administradores</a>
+    {% endif %}
+  </div>
+</section>
+<div class="row g-3">
+  {% for icono, titulo, texto in pasos %}
+  <div class="col-md-4"><div class="tarjeta paso h-100"><div class="icono-titulo"><i class="bi {{ icono }}"></i></div><h5>{{ titulo }}</h5><p class="text-muted mb-0">{{ texto }}</p></div></div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block titulo %}Nuevo administrador{% endblock %}
+{% block contenido %}<div class="tarjeta tarjeta-form "><div class="card-body p-4 p-md-5">
+<div class="icono-titulo"><i class="bi bi-person-badge"></i></div>
+<h3>Nuevo administrador</h3>
+<p class="text-muted">El administrador completará el resto de su perfil al iniciar sesión.</p>
+<form method="post"  novalidate>{% csrf_token %}{% include "_form.html" %}<button class="btn btn-primary w-100 mt-4 btn-lg">Crear administrador</button></form>
+<a class="d-block mt-3 text-center" href="{% url 'usuarios:administradores' %}">Volver a la lista</a>
+</div></div>{% endblock %}

@@ -1,0 +1,17 @@
+{% load ui %}
+{% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+<div class="row g-3">
+{% for campo in form %}
+  {% if campo|encabezado %}<div class="col-12"><div class="separador"><i class="bi bi-arrow-return-left me-1"></i>{{ campo|encabezado }}</div></div>{% endif %}
+  <div class="{{ campo|ancho }}">
+    {% if campo|es_checkbox %}
+      <div class="form-check"><label class="form-check-label fw-semibold">{{ campo|bs }} {{ campo.label }}</label></div>
+    {% else %}
+      <label class="form-label" for="{{ campo.id_for_label }}">{{ campo.label }}{% if campo.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+      {{ campo|bs }}
+    {% endif %}
+    {% if campo.help_text %}<div class="ayuda">{{ campo.help_text|safe }}</div>{% endif %}
+    {% for e in campo.errors %}<div class="error"><i class="bi bi-exclamation-circle me-1"></i>{{ e }}</div>{% endfor %}
+  </div>
+{% endfor %}
+</div>

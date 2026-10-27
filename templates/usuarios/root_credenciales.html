@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block titulo %}Credenciales del root{% endblock %}
+{% block contenido %}<div class="tarjeta tarjeta-form "><div class="card-body p-4 p-md-5">
+<div class="icono-titulo"><i class="bi bi-shield-lock"></i></div>
+<h3>Credenciales del root</h3>
+<p class="text-muted">Solo puedes cambiar tu usuario (ID) y tu contraseña.</p>
+<form method="post"  novalidate>{% csrf_token %}{% include "_form.html" %}<button class="btn btn-primary w-100 mt-4 btn-lg">Guardar cambios</button></form>
+
+</div></div>{% endblock %}

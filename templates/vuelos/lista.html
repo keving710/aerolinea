@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% block titulo %}Vuelos{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3"><h2 class="mb-0">Vuelos programados</h2>
+<div class="d-flex gap-2"><a class="btn btn-primary" href="{% url 'vuelos:nuevo_nacional' %}"><i class="bi bi-plus-lg me-1"></i>Nacional</a>
+<a class="btn btn-outline-primary" href="{% url 'vuelos:nuevo_internacional' %}"><i class="bi bi-globe-americas me-1"></i>Internacional</a></div></div>
+{% for v in vuelos %}
+<a href="{% url 'vuelos:detalle' v.codigo %}" class="vuelo text-decoration-none">
+  <div class="flex-grow-1">
+    <div class="codigo">{{ v.codigo }} <span class="badge {% if v.tipo == 'nacional' %}text-bg-primary{% else %}text-bg-info{% endif %} ms-1">{{ v.get_tipo_display }}</span>{% if v.es_regreso %} <span class="badge text-bg-secondary">Regreso</span>{% endif %}</div>
+    <div class="ruta">{{ v.origen }} <i class="bi bi-arrow-right mx-1"></i> {{ v.destino }}</div>
+    <div class="horas"><i class="bi bi-calendar-event me-1"></i>{{ v.salida_local }} <i class="bi bi-arrow-right-short"></i> {{ v.llegada_local }} <span class="ms-2"><i class="bi bi-clock me-1"></i>{{ v.duracion_texto }}</span></div>
+  </div>
+  <div class="text-end"><div class="precio">${{ v.costo_persona|floatformat:"0g" }}</div><span class="badge text-bg-success">{{ v.get_estado_display }}</span></div>
+</a>
+{% empty %}
+<div class="tarjeta text-center p-5"><div class="icono-titulo mx-auto"><i class="bi bi-airplane"></i></div><h5>Aún no hay vuelos</h5><p class="text-muted">Programa el primero con los botones de arriba.</p></div>
+{% endfor %}
+{% endblock %}
