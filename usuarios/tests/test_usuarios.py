@@ -2,7 +2,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from usuarios.models import Usuario
+from usuarios.models import Ciudad, Departamento, Usuario
 
 CLAVE = "Clave-Segura-2026"
 
@@ -11,38 +11,67 @@ def crear(username, rol, **extra):
     return Usuario.objects.create_user(username=username, password=CLAVE, rol=rol, **extra)
 
 
+def crear_ciudad(nombre, departamento):
+    dep, _ = Departamento.objects.get_or_create(nombre=departamento)
+    ciudad, _ = Ciudad.objects.get_or_create(nombre=nombre, departamento=dep)
+    return ciudad
+
+
 DATOS_REGISTRO = {
     "first_name": "Ana", "last_name": "Pérez", "dni": "1088000111", "email": "ana@correo.com",
-    "fecha_nacimiento": "2000-05-14", "lugar_nacimiento": "Pereira", "direccion_facturacion": "Cra 8 # 24-15",
+    "fecha_nacimiento": "2000-05-14", "direccion_facturacion": "Cra 8 # 24-15",
     "genero": "femenino", "username": "ana", "password1": CLAVE, "password2": CLAVE,
 }
 
 
 class HU1Registro(TestCase):
+    def setUp(self):
+        self.pereira = crear_ciudad("Pereira", "Risaralda")
+        self.datos = {**DATOS_REGISTRO, "ciudad_nacimiento": self.pereira.pk}
+
     def test_registro_exitoso_crea_cliente_y_abre_sesion(self):
-        r = self.client.post(reverse("usuarios:registro"), DATOS_REGISTRO)
+        r = self.client.post(reverse("usuarios:registro"), self.datos)
         self.assertRedirects(r, reverse("inicio"))
         u = Usuario.objects.get(username="ana")
         self.assertEqual(u.rol, "cliente")
+        self.assertEqual(u.ciudad_nacimiento, self.pereira)
         self.assertTrue(u.perfil_completo)
         self.assertIn("_auth_user_id", self.client.session)
 
     def test_documento_o_correo_duplicado_se_rechaza(self):
-        self.client.post(reverse("usuarios:registro"), DATOS_REGISTRO)
+        self.client.post(reverse("usuarios:registro"), self.datos)
         self.client.post(reverse("usuarios:salir") if False else reverse("usuarios:logout"))
-        otro = {**DATOS_REGISTRO, "username": "ana2"}
+        otro = {**self.datos, "username": "ana2"}
         r = self.client.post(reverse("usuarios:registro"), otro)
         self.assertEqual(r.status_code, 200)
         self.assertEqual(Usuario.objects.filter(rol="cliente").count(), 1)
 
     def test_campos_obligatorios(self):
-        datos = {**DATOS_REGISTRO, "direccion_facturacion": ""}
+        datos = {**self.datos, "direccion_facturacion": ""}
+        r = self.client.post(reverse("usuarios:registro"), datos)
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(Usuario.objects.filter(username="ana").exists())
+
+    def test_ciudad_obligatoria(self):
+        datos = {**self.datos, "ciudad_nacimiento": ""}
+        r = self.client.post(reverse("usuarios:registro"), datos)
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(Usuario.objects.filter(username="ana").exists())
+
+    def test_fecha_nacimiento_futura_se_rechaza(self):
+        datos = {**self.datos, "fecha_nacimiento": "2999-01-01"}
+        r = self.client.post(reverse("usuarios:registro"), datos)
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(Usuario.objects.filter(username="ana").exists())
+
+    def test_menor_de_edad_se_rechaza(self):
+        datos = {**self.datos, "fecha_nacimiento": "2020-01-01"}
         r = self.client.post(reverse("usuarios:registro"), datos)
         self.assertEqual(r.status_code, 200)
         self.assertFalse(Usuario.objects.filter(username="ana").exists())
 
     def test_contrasenas_distintas(self):
-        r = self.client.post(reverse("usuarios:registro"), {**DATOS_REGISTRO, "password2": "otra"})
+        r = self.client.post(reverse("usuarios:registro"), {**self.datos, "password2": "otra"})
         self.assertEqual(r.status_code, 200)
         self.assertFalse(Usuario.objects.filter(username="ana").exists())
 
@@ -160,9 +189,13 @@ class HU5Administradores(TestCase):
 
 
 class HU6HU7Perfil(TestCase):
+    def setUp(self):
+        self.cali = crear_ciudad("Cali", "Valle del Cauca")
+        self.armenia = crear_ciudad("Armenia", "Quindío")
+
     def datos(self, **extra):
         return {"first_name": "Luis", "last_name": "Gómez", "dni": "123456", "email": "luis@x.com",
-                "fecha_nacimiento": "1999-01-20", "lugar_nacimiento": "Cali",
+                "fecha_nacimiento": "1999-01-20", "ciudad_nacimiento": self.cali.pk,
                 "direccion_facturacion": "Calle 1 # 2-3", "genero": "masculino", **extra}
 
     def test_admin_nuevo_ve_aviso_y_completa_perfil(self):
@@ -184,8 +217,8 @@ class HU6HU7Perfil(TestCase):
     def test_cliente_edita_su_perfil(self):
         crear("cli", "cliente")
         self.client.login(username="cli", password=CLAVE)
-        self.client.post(reverse("usuarios:perfil"), self.datos(lugar_nacimiento="Armenia"))
-        self.assertEqual(Usuario.objects.get(username="cli").lugar_nacimiento, "Armenia")
+        self.client.post(reverse("usuarios:perfil"), self.datos(ciudad_nacimiento=self.armenia.pk))
+        self.assertEqual(Usuario.objects.get(username="cli").ciudad_nacimiento, self.armenia)
 
     def test_dni_duplicado_entre_usuarios(self):
         crear("otro", "cliente", dni="123456")

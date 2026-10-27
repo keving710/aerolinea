@@ -1,10 +1,9 @@
 from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.forms import AuthenticationForm
+from .models import Ciudad, Usuario
 
-from .models import Usuario
-
-OBLIGATORIOS = ["dni", "first_name", "last_name", "fecha_nacimiento", "lugar_nacimiento", "direccion_facturacion", "genero", "email"]
+OBLIGATORIOS = ["dni", "first_name", "last_name", "fecha_nacimiento", "ciudad_nacimiento", "direccion_facturacion", "genero", "email"]
 
 
 class LoginForm(AuthenticationForm):
@@ -36,12 +35,12 @@ class RegistroClienteForm(_ClavesMixin, forms.ModelForm):
     password1 = forms.CharField(label="Contraseña", strip=False, widget=forms.PasswordInput)
     password2 = forms.CharField(label="Confirmar contraseña", strip=False, widget=forms.PasswordInput)
 
-    field_order = ["dni", "first_name", "last_name", "fecha_nacimiento", "lugar_nacimiento",
+    field_order = ["dni", "first_name", "last_name", "fecha_nacimiento", "ciudad_nacimiento",
                    "direccion_facturacion", "genero", "email", "username", "password1", "password2", "foto"]
 
     class Meta:
         model = Usuario
-        fields = ["dni", "first_name", "last_name", "fecha_nacimiento", "lugar_nacimiento", "direccion_facturacion", "genero", "email", "username", "foto"]
+        fields = ["dni", "first_name", "last_name", "fecha_nacimiento", "ciudad_nacimiento", "direccion_facturacion", "genero", "email", "username", "foto"]
         widgets = {"fecha_nacimiento": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}
         labels = {"username": "Usuario (ID)"}
         help_texts = {"username": "Con este usuario iniciarás sesión."}
@@ -50,6 +49,8 @@ class RegistroClienteForm(_ClavesMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         for nombre in OBLIGATORIOS:
             self.fields[nombre].required = True
+        self.fields["ciudad_nacimiento"].queryset = Ciudad.objects.select_related("departamento")
+        self.fields["ciudad_nacimiento"].empty_label = "Selecciona una ciudad"
         self.fields["foto"].required = False
         self.fields["foto"].widget = forms.FileInput(attrs={"accept": ".jpg,.jpeg,.png"})
 
@@ -72,13 +73,15 @@ class PerfilForm(forms.ModelForm):
 
     class Meta:
         model = Usuario
-        fields = ["dni", "first_name", "last_name", "fecha_nacimiento", "lugar_nacimiento", "direccion_facturacion", "genero", "email", "foto"]
+        fields = ["dni", "first_name", "last_name", "fecha_nacimiento", "ciudad_nacimiento", "direccion_facturacion", "genero", "email", "foto"]
         widgets = {"fecha_nacimiento": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for nombre in OBLIGATORIOS:
             self.fields[nombre].required = True
+        self.fields["ciudad_nacimiento"].queryset = Ciudad.objects.select_related("departamento")
+        self.fields["ciudad_nacimiento"].empty_label = "Selecciona una ciudad"
         self.fields["foto"].required = False
         self.fields["foto"].widget = forms.FileInput(attrs={"accept": ".jpg,.jpeg,.png"})
 

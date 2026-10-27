@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -14,6 +16,43 @@ def validar_foto(archivo):
         raise ValidationError("La foto no puede superar los 2 MB.")
 
 
+def validar_fecha_nacimiento(valor):
+    """La fecha no puede ser futura, la persona debe ser mayor de edad y la edad debe ser realista."""
+    hoy = date.today()
+    if valor > hoy:
+        raise ValidationError("La fecha de nacimiento no puede ser futura.")
+    edad = hoy.year - valor.year - ((hoy.month, hoy.day) < (valor.month, valor.day))
+    if edad < 18:
+        raise ValidationError("Debes ser mayor de 18 años.")
+    if edad > 120:
+        raise ValidationError("La fecha de nacimiento no es válida.")
+
+
+class Departamento(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        ordering = ["nombre"]
+
+    def __str__(self):
+        return self.nombre
+
+
+class Ciudad(models.Model):
+    nombre = models.CharField(max_length=100)
+    departamento = models.ForeignKey(
+        Departamento, on_delete=models.PROTECT, related_name="ciudades"
+    )
+
+    class Meta:
+        ordering = ["departamento__nombre", "nombre"]
+        unique_together = [("nombre", "departamento")]
+        verbose_name_plural = "ciudades"
+
+    def __str__(self):
+        return f"{self.nombre}, {self.departamento.nombre}"
+
+
 class Usuario(AbstractUser):
     class Rol(models.TextChoices):
         ROOT = "root", "Root"
@@ -26,8 +65,20 @@ class Usuario(AbstractUser):
     dni = models.CharField(
         "documento de identidad", max_length=20, unique=True, null=True, blank=True
     )
-    fecha_nacimiento = models.DateField("fecha de nacimiento", null=True, blank=True)
-    lugar_nacimiento = models.CharField("lugar de nacimiento", max_length=100, blank=True)
+    fecha_nacimiento = models.DateField(
+        "fecha de nacimiento",
+        null=True,
+        blank=True,
+        validators=[validar_fecha_nacimiento],
+    )
+    ciudad_nacimiento = models.ForeignKey(
+        Ciudad,
+        verbose_name="lugar de nacimiento",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="nacidos",
+    )
     direccion_facturacion = models.CharField("dirección de facturación", max_length=200, blank=True)
 
     class Genero(models.TextChoices):
@@ -85,7 +136,7 @@ class Usuario(AbstractUser):
         """Datos obligatorios del perfil (HU 6)."""
         return all([
             self.first_name, self.last_name, self.dni, self.fecha_nacimiento,
-            self.lugar_nacimiento, self.direccion_facturacion, self.genero, self.email,
+            self.ciudad_nacimiento, self.direccion_facturacion, self.genero, self.email,
         ])
 
     def __str__(self):
