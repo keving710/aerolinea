@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.forms import AuthenticationForm
+
 from .models import Ciudad, Usuario
 
 OBLIGATORIOS = ["dni", "first_name", "last_name", "fecha_nacimiento", "ciudad_nacimiento", "direccion_facturacion", "genero", "email"]
@@ -32,7 +33,10 @@ class _ClavesMixin:
 
 
 class RegistroClienteForm(_ClavesMixin, forms.ModelForm):
-    password1 = forms.CharField(label="Contraseña", strip=False, widget=forms.PasswordInput)
+    password1 = forms.CharField(
+        label="Contraseña", strip=False, widget=forms.PasswordInput,
+        help_text=password_validation.password_validators_help_text_html(),
+    )
     password2 = forms.CharField(label="Confirmar contraseña", strip=False, widget=forms.PasswordInput)
 
     field_order = ["dni", "first_name", "last_name", "fecha_nacimiento", "ciudad_nacimiento",
@@ -56,6 +60,13 @@ class RegistroClienteForm(_ClavesMixin, forms.ModelForm):
 
     def clean(self):
         datos = super().clean()
+        # Usuario temporal para que la contraseña no se parezca a sus datos personales.
+        self.usuario = Usuario(
+            username=datos.get("username", ""),
+            first_name=datos.get("first_name", ""),
+            last_name=datos.get("last_name", ""),
+            email=datos.get("email"),
+        )
         self.clean_claves()
         return datos
 

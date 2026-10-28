@@ -1,8 +1,10 @@
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from usuarios.models import Ciudad, Departamento, Usuario
+from usuarios.validadores import ComplejidadPasswordValidator
 
 CLAVE = "Clave-Segura-2026"
 
@@ -251,3 +253,47 @@ class HU6HU7Perfil(TestCase):
             r = self.client.post(reverse("usuarios:perfil"), self.datos(foto=png))
             self.assertRedirects(r, reverse("usuarios:perfil"))
             self.assertTrue(Usuario.objects.get(username="cli").foto)
+
+
+class Contrasenas(TestCase):
+    """Criterios de contraseña: mayúscula, minúscula, número, carácter especial y sin espacios."""
+
+    def setUp(self):
+        self.validador = ComplejidadPasswordValidator()
+        self.pereira = crear_ciudad("Pereira", "Risaralda")
+
+    def registro(self, clave):
+        datos = {**DATOS_REGISTRO, "ciudad_nacimiento": self.pereira.pk,
+                 "password1": clave, "password2": clave}
+        return self.client.post(reverse("usuarios:registro"), datos)
+
+    def test_clave_valida(self):
+        self.validador.validate("Clave-Segura-2026")  # no debe lanzar error
+
+    def test_rechaza_cada_criterio_incumplido(self):
+        casos = {
+            "sin mayúscula": "clave-segura-2026",
+            "sin minúscula": "CLAVE-SEGURA-2026",
+            "sin número": "Clave-Segura-abcd",
+            "sin carácter especial": "ClaveSegura2026",
+            "con espacios": "Clave Segura-2026",
+        }
+        for criterio, clave in casos.items():
+            with self.subTest(criterio=criterio):
+                with self.assertRaises(ValidationError):
+                    self.validador.validate(clave)
+
+    def test_registro_rechaza_clave_sin_mayuscula(self):
+        r = self.registro("clave-segura-2026")
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(Usuario.objects.filter(username="ana").exists())
+
+    def test_registro_rechaza_clave_con_espacios(self):
+        r = self.registro("Clave Segura 2026!")
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(Usuario.objects.filter(username="ana").exists())
+
+    def test_registro_rechaza_clave_corta(self):
+        r = self.registro("Ab-1")
+        self.assertEqual(r.status_code, 200)
+        self.assertFalse(Usuario.objects.filter(username="ana").exists())
