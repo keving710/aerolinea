@@ -17,5 +17,6 @@
 {% if vuelo.vuelo_regreso %}<div class="alert alert-info">Vuelo de regreso programado: <a class="fw-semibold" href="{% url 'vuelos:detalle' vuelo.vuelo_regreso.codigo %}">{{ vuelo.vuelo_regreso.codigo }}</a></div>{% endif %}
 {% if vuelo.tipo == "internacional" and not vuelo.es_regreso and not vuelo.vuelo_regreso %}
 <a class="btn btn-outline-primary" href="{% url 'vuelos:regreso' vuelo.codigo %}"><i class="bi bi-arrow-return-left me-1"></i>Agregar vuelo de regreso</a>{% endif %}
+{% if not vuelo.motivo_no_editable %}<a class="btn btn-primary" href="{% url 'vuelos:editar' vuelo.codigo %}">Editar vuelo</a>{% else %}<p class="text-muted mt-3">{{ vuelo.motivo_no_editable }}</p>{% endif %}
 <a class="btn btn-link" href="{% url 'vuelos:lista' %}">Volver a la lista</a>
 </div></div>{% endblock %}

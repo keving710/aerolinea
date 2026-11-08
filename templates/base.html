@@ -11,12 +11,15 @@
   <link href="{% static 'css/app.css' %}" rel="stylesheet">
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark barra py-2">
+<a class="visually-hidden-focusable btn btn-light" href="#contenido">Saltar al contenido principal</a>
+<nav class="navbar navbar-expand-xl navbar-dark barra py-2">
   <div class="container">
     <a class="navbar-brand" href="{% url 'inicio' %}"><span class="logo"><i class="bi bi-airplane-fill"></i></span>Tiquetes aéreos</a>
-    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-label="Abrir menú"><span class="navbar-toggler-icon"></span></button>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-label="Abrir menú" aria-controls="menu" aria-expanded="false"><span class="navbar-toggler-icon"></span></button>
     <div class="collapse navbar-collapse" id="menu">
       <ul class="navbar-nav me-auto gap-lg-1 mt-2 mt-lg-0">
+        <li class="nav-item"><a class="nav-link" href="{% url 'vuelos:busqueda' %}"><i class="bi bi-search me-1" aria-hidden="true"></i>Buscar vuelos</a></li>
+        {% if user.es_cliente %}<li class="nav-item"><a class="nav-link" href="{% url 'finanzas:panel' %}">Mi billetera</a></li>{% endif %}
         {% if user.is_authenticated and user.es_root %}
           <li class="nav-item"><a class="nav-link" href="{% url 'usuarios:administradores' %}"><i class="bi bi-people me-1"></i>Administradores</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'usuarios:root_credenciales' %}"><i class="bi bi-shield-lock me-1"></i>Mis credenciales</a></li>
@@ -49,12 +52,12 @@
     </div>
   </div>
 </nav>
-<main class="container py-4">
+<main id="contenido" class="container py-4">
   {% if perfil_admin_pendiente %}
     <div class="alert alert-warning d-flex align-items-center gap-2"><i class="bi bi-exclamation-triangle-fill"></i><span>Tu perfil de administrador está incompleto. <a class="fw-semibold" href="{% url 'usuarios:perfil' %}">Complétalo ahora</a>.</span></div>
   {% endif %}
   {% for m in messages %}
-    <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}{{ m.tags }}{% endif %} d-flex align-items-center gap-2">
+    <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}{{ m.tags }}{% endif %} d-flex align-items-center gap-2" role="status">
       <i class="bi {% if m.tags == 'success' %}bi-check-circle-fill{% elif m.tags == 'error' %}bi-x-circle-fill{% else %}bi-info-circle-fill{% endif %}"></i><span>{{ m }}</span>
     </div>
   {% endfor %}

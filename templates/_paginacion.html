@@ -1,0 +1,6 @@
+{% if page_obj.paginator.num_pages > 1 %}
+<nav aria-label="Paginación" class="d-flex justify-content-center align-items-center gap-3 mt-4">
+{% if page_obj.has_previous %}<a class="btn btn-outline-primary" href="?{% if parametros %}{{ parametros }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
+<span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+{% if page_obj.has_next %}<a class="btn btn-outline-primary" href="?{% if parametros %}{{ parametros }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Siguiente</a>{% endif %}
+</nav>{% endif %}

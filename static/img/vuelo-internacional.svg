@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="240" viewBox="0 0 640 240" role="img" aria-label="Vuelo internacional">
+<rect width="640" height="240" fill="#e3f4ed"/><circle cx="540" cy="55" r="34" fill="#fff" opacity=".8"/>
+<path d="M0 215 110 100 215 205 350 60 550 230H0" fill="#23675a" opacity=".18"/>
+<path d="M0 240 200 160 300 220 450 130 640 200V240" fill="#23675a" opacity=".3"/>
+<path d="M80 165Q270 10 540 105" fill="none" stroke="#23675a" stroke-width="2" stroke-dasharray="6 8"/>
+<path d="m365 84 90 13-35-42 11-5 56 43 45 7q15 5-2 10l-47-2-64 34-10-6 42-31-86-12z" fill="#23675a"/>
+<text x="32" y="52" fill="#23675a" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="600">El mundo te espera</text></svg>

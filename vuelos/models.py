@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models, transaction
+from django.utils import timezone
 from django.db.models import F, Q
 
 from . import reglas
@@ -39,6 +40,9 @@ class Vuelo(models.Model):
     duracion_minutos = models.PositiveIntegerField()
     costo_persona = models.DecimalField("costo por persona (COP)", max_digits=12, decimal_places=2)
     capacidad = models.PositiveIntegerField()
+    # Contrato mínimo de inventario para iteración 3, sin venta ni reserva HTTP.
+    tiquetes_vendidos = models.PositiveIntegerField(default=0, editable=False)
+    cupos_reservados = models.PositiveIntegerField(default=0, editable=False)
     vuelo_ida = models.OneToOneField(
         "self", null=True, blank=True, on_delete=models.CASCADE, related_name="vuelo_regreso"
     )
@@ -51,6 +55,9 @@ class Vuelo(models.Model):
     class Meta:
         ordering = ["salida"]
         constraints = [
+            models.CheckConstraint(condition=Q(capacidad__gt=0), name="vuelo_capacidad_positiva"),
+            models.CheckConstraint(condition=Q(duracion_minutos__gt=0), name="vuelo_duracion_positiva"),
+            models.CheckConstraint(condition=Q(capacidad__gte=F("tiquetes_vendidos") + F("cupos_reservados")), name="vuelo_inventario_valido"),
             models.CheckConstraint(condition=~Q(origen=F("destino")), name="vuelo_origen_distinto_destino"),
             models.CheckConstraint(condition=Q(llegada__gt=F("salida")), name="vuelo_llegada_posterior"),
             models.CheckConstraint(condition=Q(costo_persona__gt=0), name="vuelo_costo_positivo"),
@@ -60,6 +67,24 @@ class Vuelo(models.Model):
         if not self.codigo:
             self.codigo = f"VU-{Consecutivo.siguiente():05d}"
         super().save(*args, **kwargs)
+
+    @property
+    def cupos_disponibles(self):
+        return max(0, self.capacidad - self.tiquetes_vendidos - self.cupos_reservados)
+
+    @property
+    def motivo_no_editable(self):
+        if self.tiquetes_vendidos:
+            return "Este vuelo tiene tiquetes vendidos y no se puede editar."
+        if self.estado == self.Estado.REALIZADO or self.salida <= timezone.now():
+            return "Este vuelo ya se realizó o inició y no se puede editar."
+        if self.estado != self.Estado.PROGRAMADO:
+            return "Solo se pueden editar vuelos programados."
+        return ""
+
+    @property
+    def imagen_catalogo(self):
+        return f"img/vuelo-{self.tipo}.svg"
 
     # Zonas horarias locales de cada extremo.
     @property

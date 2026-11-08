@@ -7,3 +7,6 @@ media/
 staticfiles/
 .env
 .vercel/
+
+# Verificación visual local, sin datos de aplicación
+.qa/

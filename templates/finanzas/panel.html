@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block titulo %}Mi billetera{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div><h1 class="h2 mb-1">Mi billetera</h1><p class="text-muted mb-0">Tu dinero simulado, tus tarjetas y todos tus movimientos.</p></div>
+  <div class="d-flex flex-wrap gap-2"><a class="btn btn-primary" href="{% url 'finanzas:nueva_tarjeta' %}">Agregar tarjeta</a><a class="btn btn-outline-primary" href="{% url 'finanzas:recargar' %}">Recargar saldo</a></div>
+</div>
+<div class="alert alert-info">Entorno de simulación: no se realizan cobros reales. Usa únicamente números de tarjeta ficticios.</div>
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><section class="saldo-total h-100 p-4"><h2 class="h6 text-white">Saldo total disponible</h2><p class="fs-2 fw-bold mb-1">${{ saldo_total|floatformat:"2g" }}</p><span>COP · Suma de tus tarjetas</span></section></div>
+  <div class="col-md-8"><div class="row g-3">
+    {% for tarjeta in tarjetas %}<div class="col-sm-6"><section class="tarjeta p-4 h-100"><span class="badge text-bg-primary mb-2">{{ tarjeta.get_tipo_display }}</span><h2 class="h5">•••• {{ tarjeta.ultimos_cuatro }}</h2><p class="fs-4 fw-semibold mb-0">${{ tarjeta.saldo|floatformat:"2g" }} <small class="fs-6">COP</small></p></section></div>
+    {% empty %}<div class="col-12"><div class="tarjeta p-4"><h2 class="h5">Aún no tienes tarjetas</h2><p>Agrega tu primera tarjeta ficticia con el saldo que quieras simular.</p><a href="{% url 'finanzas:nueva_tarjeta' %}">Registrar mi primera tarjeta</a></div></div>{% endfor %}
+  </div></div>
+</div>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3"><h2 class="h4 mb-0">Historial de movimientos</h2><a href="{% url 'finanzas:simular_pago' %}" class="btn btn-outline-primary btn-sm">Probar selección de tarjeta y pago</a></div>
+<div class="tarjeta p-3"><div class="table-responsive"><table class="table align-middle mb-0">
+  <caption>Recargas, pagos simulados y reembolsos de tu billetera. Valores en COP.</caption>
+  <thead><tr><th scope="col">Fecha</th><th scope="col">Tarjeta</th><th scope="col">Tipo y detalle</th><th scope="col" class="text-end">Valor (COP)</th><th scope="col" class="text-end">Saldo resultante</th></tr></thead>
+  <tbody>{% for m in page_obj %}<tr><td class="text-nowrap">{{ m.creado_en|date:"d/m/Y H:i" }}</td><td>•••• {{ m.tarjeta.ultimos_cuatro }}</td><td><strong>{{ m.get_tipo_display }}</strong><br><small class="text-muted">{{ m.detalle }}</small></td><td class="text-end text-nowrap">{% if m.tipo == 'compra' %}−{% else %}+{% endif %} ${{ m.valor|floatformat:"2g" }}</td><td class="text-end text-nowrap">${{ m.saldo_resultante|floatformat:"2g" }}</td></tr>
+  {% empty %}<tr><td colspan="5" class="text-center py-4">Aún no hay movimientos. Tus operaciones aparecerán aquí.</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% include "_paginacion.html" %}
+{% endblock %}

@@ -1,4 +1,4 @@
-# Sistema de compra y reserva de tiquetes aéreos — Iteración 1
+# Sistema de compra y reserva de tiquetes aéreos — Iteraciones 1 y 2
 
 Python 3.13 · Django 5.2 · PostgreSQL (Neon/Supabase) · Vercel · Cloudinary (fotos).
 
@@ -21,7 +21,7 @@ Python 3.13 · Django 5.2 · PostgreSQL (Neon/Supabase) · Vercel · Cloudinary 
 
 Los datos de usuario siguen el diagrama entidad-relación (DNI, nombres, apellidos, fecha y lugar de nacimiento, dirección de facturación, género, correo, usuario, contraseña, rol).
 
-Quedan para siguientes iteraciones: HU 8 (noticias), HU 9 (finanzas), búsqueda, compra, reserva, check-in y chatbot.
+La iteración 2 incorpora finanzas simuladas, búsqueda pública, publicación y edición de vuelos. Quedan para siguientes iteraciones: noticias, compra/reserva de tiquetes, cancelaciones, promociones, check-in y chatbot.
 
 ## Ejecutar en local
 
@@ -31,7 +31,7 @@ pip install -r requirements.txt
 export DEBUG=1                                       # Windows (PowerShell): $env:DEBUG="1"
 python manage.py migrate        # crea la BD SQLite y el usuario root
 python manage.py runserver
-python manage.py test           # 54 pruebas
+python manage.py test           # 99 pruebas (62 originales + 37 de iteración 2)
 ```
 
 Root por defecto: usuario `root`, contraseña `Root2026!` (cámbiala en `/root/credenciales/`).
@@ -62,3 +62,17 @@ Bootstrap 5 y Bootstrap Icons vienen incluidos en `static/vendor/` (no dependen 
 - **Horas**: se guardan en UTC y se muestran en la hora local de cada ciudad (Bogotá, Madrid, Londres, New York, Buenos Aires, Miami), con horario de verano automático.
 - **Vuelos inválidos**: no se guardan; el administrador ve la lista de errores. El campo `estado` usa los valores del diagrama de clases (programado, cancelado, realizado); hoy solo se usa «programado».
 - **Capacidad**: 150 asientos (nacional) y 250 (internacional).
+
+
+## Iteración 2
+
+Implementa HU **9, 15, 19, 24, 25 y 34–39**, conservando las funciones de usuarios y programación de vuelos de la iteración 1.
+
+* **Inicio y búsqueda:** `/` y `/vuelos/buscar/`. Vuelos con imagen local, información completa y cupos; filtros combinables por código, ruta, fecha/hora local del origen, tipo, duración y precio. Solo vuelos futuros, programados y con disponibilidad.
+* **Edición de vuelos:** desde el detalle administrativo, solo administrador y sin tiquetes vendidos ni salida iniciada/realizada. Conserva código, tipo y capacidad y valida los tramos vinculados.
+* **Mi billetera:** `/billetera/`, exclusiva del cliente. Tarjetas débito/crédito ficticias, saldo por tarjeta y total, recargas e historial paginado. Los números se enmascaran y no se almacenan completos.
+* **Selección de tarjeta y fondos:** `/billetera/simular-pago/` permite verificar el débito simulado sobre la tarjeta elegida y el rechazo por saldo insuficiente. No compra ni reserva tiquetes. Contratos internos de cobro y reembolso preparados para la iteración 3.
+
+Aplicar `python manage.py migrate` antes de iniciar una instalación existente. En Windows puede usarse `.\.venv\Scripts\python.exe` y `$env:DEBUG = "1"`.
+
+Ver [criterios, arquitectura, seguridad, contratos y validación de la iteración 2](docs/ITERACION_2.md).
