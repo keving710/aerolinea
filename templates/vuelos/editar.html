@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block titulo %}Editar vuelo {{ vuelo.codigo }}{% endblock %}
+{% block contenido %}<div class="tarjeta tarjeta-form ancha p-4 p-md-5">
+<h1 class="h3">Editar vuelo {{ vuelo.codigo }}</h1>
+{% if motivo %}<div class="alert alert-warning" role="alert">{{ motivo }}</div>
+{% else %}
+<p class="text-muted">{{ vuelo.get_tipo_display }} · El código, el tipo y la capacidad se conservan. Los horarios corresponden a la ciudad de salida y llegada.</p>
+<div class="alert alert-info">Este vuelo no tiene tiquetes vendidos y aún no ha salido; puedes editarlo.</div>
+<form method="post" novalidate>{% csrf_token %}{% include "_form.html" %}<button class="btn btn-primary mt-4">Guardar cambios</button></form>
+{% endif %}
+<a class="btn btn-link mt-3" href="{% url 'vuelos:detalle' vuelo.codigo %}">Volver al vuelo</a>
+</div>{% endblock %}

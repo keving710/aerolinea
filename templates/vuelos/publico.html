@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% load static %}{% block titulo %}Vuelo {{ vuelo.codigo }}{% endblock %}
+{% block contenido %}<article class="tarjeta tarjeta-form ancha overflow-hidden">
+<img class="imagen-vuelo" src="{% static vuelo.imagen_catalogo %}" width="640" height="240" alt="Ilustración de un vuelo {{ vuelo.get_tipo_display|lower }}">
+<div class="p-4 p-md-5"><p class="codigo">{{ vuelo.codigo }} · {{ vuelo.get_tipo_display }}</p><h1 class="h2">{{ vuelo.origen }} → {{ vuelo.destino }}</h1>
+<dl class="datos-vuelo"><dt>Salida · hora de {{ vuelo.origen }}</dt><dd>{{ vuelo.salida_local }}</dd><dt>Llegada · hora de {{ vuelo.destino }}</dt><dd>{{ vuelo.llegada_local }}</dd><dt>Duración</dt><dd>{{ vuelo.duracion_texto }}</dd><dt>Cupos disponibles</dt><dd>{{ vuelo.cupos_disponibles }}</dd></dl>
+<p class="fs-3 fw-bold">${{ vuelo.costo_persona|floatformat:"0g" }} <small class="fs-6 fw-normal">COP por persona</small></p>
+<p class="text-muted">La compra y reserva de tiquetes estará disponible en la siguiente iteración.</p>
+<a class="btn btn-primary" href="{% url 'vuelos:busqueda' %}">Volver a buscar vuelos</a></div></article>{% endblock %}

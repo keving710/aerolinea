@@ -19,7 +19,16 @@ def bs(campo):
         clase = "form-control"
     if campo.errors:
         clase += " is-invalid"
-    return campo.as_widget(attrs={"class": clase})
+    attrs = {"class": clase}
+    described = []
+    if campo.help_text:
+        described.append(f"{campo.auto_id}_helptext")
+    if campo.errors:
+        attrs["aria-invalid"] = "true"
+        described.append(f"{campo.auto_id}_errors")
+    if described:
+        attrs["aria-describedby"] = " ".join(described)
+    return campo.as_widget(attrs=attrs)
 
 
 @register.filter

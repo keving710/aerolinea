@@ -32,7 +32,8 @@ PASOS_INICIO = [
 
 
 def inicio(request):
-    return render(request, "inicio.html", {"pasos": PASOS_INICIO})
+    from vuelos.catalogo import disponibles
+    return render(request, "inicio.html", {"vuelos": disponibles()[:6]})
 
 
 def acceso_restringido(request, exception=None):
