@@ -2,7 +2,7 @@
 <div class="row g-4">
 {% for v in vuelos %}
 <div class="col-md-6 col-xl-4"><article class="tarjeta h-100 overflow-hidden">
-  <img class="imagen-vuelo" src="{% static v.imagen_catalogo %}" alt="Ilustración de un vuelo {{ v.get_tipo_display|lower }}" width="640" height="240" loading="lazy">
+  <img class="imagen-vuelo" src="{{ v.imagen_url }}" alt="{{ v.imagen_alt }}" width="640" height="240" loading="lazy">
   <div class="p-4"><div class="d-flex justify-content-between gap-2 mb-2"><span class="codigo">{{ v.codigo }}</span><span class="badge text-bg-primary">{{ v.get_tipo_display }}</span></div>
   <h2 class="h5">{{ v.origen }} → {{ v.destino }}</h2>
   <dl class="datos-vuelo"><dt>Salida · {{ v.origen }}</dt><dd>{{ v.salida_local }}</dd><dt>Llegada · {{ v.destino }}</dt><dd>{{ v.llegada_local }}</dd><dt>Duración</dt><dd>{{ v.duracion_texto }}</dd><dt>Cupos disponibles</dt><dd>{{ v.cupos_disponibles }}</dd></dl>

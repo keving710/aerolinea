@@ -1,5 +1,9 @@
 {% load ui %}
-{% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+{% if form.errors %}<div class="alert alert-danger" role="alert">
+  {% for e in form.non_field_errors %}<div class="fw-semibold">{{ e }}</div>{% endfor %}
+  {% if form.errors|length > form.non_field_errors|length %}<div class="fw-semibold">Corrige los siguientes campos:</div>
+  <ul class="mb-0 resumen-errores">{% for campo in form %}{% if campo.errors %}<li><a class="alert-link" href="#{{ campo.id_for_label }}">{{ campo.label }}</a>: {{ campo.errors.0 }}</li>{% endif %}{% endfor %}</ul>{% endif %}
+</div>{% endif %}
 <div class="row g-3">
 {% for campo in form %}
   {% if campo.is_hidden %}{{ campo }}{% for e in campo.errors %}<div class="error" role="alert">{{ e }}</div>{% endfor %}{% else %}

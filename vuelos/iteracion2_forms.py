@@ -33,15 +33,16 @@ class BusquedaForm(forms.Form):
         return d
 
 
-def formulario_edicion(vuelo, data=None):
+def formulario_edicion(vuelo, data=None, files=None):
     salida = timezone.localtime(vuelo.salida, vuelo.zona_origen)
     initial = {"origen": vuelo.origen, "destino": vuelo.destino, "fecha": salida.date(),
-               "hora_salida": salida.time().replace(tzinfo=None), "costo_persona": vuelo.costo_persona}
+               "hora_salida": salida.time().replace(tzinfo=None), "costo_persona": vuelo.costo_persona,
+               "imagen": vuelo.imagen or None}
     if vuelo.tipo == Vuelo.Tipo.NACIONAL:
         initial["hora_llegada"] = timezone.localtime(vuelo.llegada, vuelo.zona_destino).time().replace(tzinfo=None)
-        return VueloNacionalForm(data, initial=initial)
+        return VueloNacionalForm(data, files, initial=initial)
     initial.update(horas=vuelo.duracion_minutos // 60, minutos=vuelo.duracion_minutos % 60)
-    form = VueloInternacionalForm(data, initial=initial)
+    form = VueloInternacionalForm(data, files, initial=initial)
     for campo in list(form.fields):
         if campo == "con_regreso" or campo.endswith("_r"):
             del form.fields[campo]

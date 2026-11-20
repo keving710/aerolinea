@@ -9,6 +9,7 @@
     <p>Primero registra una tarjeta ficticia para continuar.</p>
     <a class="btn btn-primary" href="{% url 'finanzas:nueva_tarjeta' %}">Agregar tarjeta</a>
   {% else %}
+    {% if es_tarjeta %}<div class="alert alert-secondary d-flex align-items-center gap-2 py-2" id="franquicia-detectada" aria-live="polite"><i class="bi bi-credit-card-2-front"></i><span>Franquicia: <strong data-franquicia>escribe el número de la tarjeta</strong></span></div>{% endif %}
     <form method="post" novalidate>{% csrf_token %}{% include "_form.html" %}
       <button class="btn btn-primary w-100 mt-4">{{ boton }}</button>
     </form>
@@ -16,3 +17,4 @@
   <a class="btn btn-link mt-3" href="{% url 'finanzas:panel' %}">Volver a mi billetera</a>
 </div>
 {% endblock %}
+{% block scripts %}{% if es_tarjeta %}{% load static %}<script src="{% static 'js/tarjeta.js' %}"></script>{% endif %}{% endblock %}

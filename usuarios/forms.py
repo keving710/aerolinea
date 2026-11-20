@@ -6,6 +6,21 @@ from .models import Ciudad, Usuario
 
 OBLIGATORIOS = ["dni", "first_name", "last_name", "fecha_nacimiento", "ciudad_nacimiento", "direccion_facturacion", "genero", "email"]
 
+# HU 1: mensaje claro cuando ya existe una cuenta con esas credenciales.
+DUPLICADOS = {
+    "dni": {"unique": "Ya existe una cuenta registrada con este documento de identidad."},
+    "email": {"unique": "Ya existe una cuenta registrada con este correo electrónico."},
+    "username": {"unique": "Ya existe una cuenta con este usuario (ID). Elige otro."},
+}
+
+
+def _correo_libre(form):
+    """El correo se guarda en minúsculas y no puede repetirse sin importar mayúsculas."""
+    correo = (form.cleaned_data.get("email") or "").strip().lower()
+    if correo and Usuario.objects.filter(email__iexact=correo).exclude(pk=form.instance.pk).exists():
+        raise forms.ValidationError(DUPLICADOS["email"]["unique"])
+    return correo
+
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(label="Usuario (ID)", widget=forms.TextInput(attrs={"autofocus": True}))
@@ -48,6 +63,10 @@ class RegistroClienteForm(_ClavesMixin, forms.ModelForm):
         widgets = {"fecha_nacimiento": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}
         labels = {"username": "Usuario (ID)"}
         help_texts = {"username": "Con este usuario iniciarás sesión."}
+        error_messages = DUPLICADOS
+
+    def clean_email(self):
+        return _correo_libre(self)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -86,6 +105,10 @@ class PerfilForm(forms.ModelForm):
         model = Usuario
         fields = ["dni", "first_name", "last_name", "fecha_nacimiento", "ciudad_nacimiento", "direccion_facturacion", "genero", "email", "foto"]
         widgets = {"fecha_nacimiento": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}
+        error_messages = DUPLICADOS
+
+    def clean_email(self):
+        return _correo_libre(self)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -148,6 +171,7 @@ class AdministradorNuevoForm(_ClavesMixin, forms.ModelForm):
         model = Usuario
         fields = ["username"]
         labels = {"username": "Usuario (ID)"}
+        error_messages = {"username": DUPLICADOS["username"]}
 
     def clean(self):
         datos = super().clean()

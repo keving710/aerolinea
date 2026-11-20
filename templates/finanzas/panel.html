@@ -8,7 +8,7 @@
 <div class="row g-3 mb-4">
   <div class="col-md-4"><section class="saldo-total h-100 p-4"><h2 class="h6 text-white">Saldo total disponible</h2><p class="fs-2 fw-bold mb-1">${{ saldo_total|floatformat:"2g" }}</p><span>COP · Suma de tus tarjetas</span></section></div>
   <div class="col-md-8"><div class="row g-3">
-    {% for tarjeta in tarjetas %}<div class="col-sm-6"><section class="tarjeta p-4 h-100"><span class="badge text-bg-primary mb-2">{{ tarjeta.get_tipo_display }}</span><h2 class="h5">•••• {{ tarjeta.ultimos_cuatro }}</h2><p class="fs-4 fw-semibold mb-0">${{ tarjeta.saldo|floatformat:"2g" }} <small class="fs-6">COP</small></p></section></div>
+    {% for tarjeta in tarjetas %}<div class="col-sm-6"><section class="tarjeta p-4 h-100"><div class="d-flex flex-wrap gap-1 mb-2">{% if tarjeta.franquicia %}<span class="badge text-bg-dark">{{ tarjeta.get_franquicia_display }}</span>{% endif %}<span class="badge text-bg-primary">{{ tarjeta.get_tipo_display }}</span>{% if tarjeta.vencida %}<span class="badge text-bg-danger">Vencida</span>{% endif %}</div><h2 class="h5">•••• {{ tarjeta.ultimos_cuatro }}</h2>{% if tarjeta.vencimiento_texto %}<p class="small text-muted mb-1">Vence {{ tarjeta.vencimiento_texto }}</p>{% endif %}<p class="fs-4 fw-semibold mb-0">${{ tarjeta.saldo|floatformat:"2g" }} <small class="fs-6">COP</small></p></section></div>
     {% empty %}<div class="col-12"><div class="tarjeta p-4"><h2 class="h5">Aún no tienes tarjetas</h2><p>Agrega tu primera tarjeta ficticia con el saldo que quieras simular.</p><a href="{% url 'finanzas:nueva_tarjeta' %}">Registrar mi primera tarjeta</a></div></div>{% endfor %}
   </div></div>
 </div>

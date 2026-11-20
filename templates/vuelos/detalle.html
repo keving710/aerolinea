@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% block titulo %}Vuelo {{ vuelo.codigo }}{% endblock %}
-{% block contenido %}<div class="tarjeta tarjeta-form ancha"><div class="card-body p-4 p-md-5">
+{% block contenido %}<div class="tarjeta tarjeta-form ancha overflow-hidden"><img class="imagen-vuelo imagen-vuelo-grande" src="{{ vuelo.imagen_url }}" width="640" height="240" alt="{{ vuelo.imagen_alt }}"><div class="card-body p-4 p-md-5">
 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
   <div><div class="codigo text-muted fw-semibold">{{ vuelo.codigo }}</div><h3 class="mb-1">{{ vuelo.origen }} → {{ vuelo.destino }}</h3>
   <span class="badge {% if vuelo.tipo == 'nacional' %}text-bg-primary{% else %}text-bg-info{% endif %}">{{ vuelo.get_tipo_display }}</span>

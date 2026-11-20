@@ -29,6 +29,35 @@ ZONAS_DESTINO = {
 }
 DESTINOS_INTERNACIONALES = list(ZONAS_DESTINO)
 
+# Duración estimada (minutos) de cada ruta internacional; sirve igual para la ida y el regreso.
+# Permite calcular la duración automáticamente; el administrador puede ajustarla.
+DURACION_ESTIMADA = {
+    ("Bogotá", "Madrid"): 615, ("Bogotá", "Londres"): 640, ("Bogotá", "New York"): 345,
+    ("Bogotá", "Buenos Aires"): 395, ("Bogotá", "Miami"): 225,
+    ("Medellín", "Madrid"): 600, ("Medellín", "Londres"): 630, ("Medellín", "New York"): 340,
+    ("Medellín", "Buenos Aires"): 410, ("Medellín", "Miami"): 210,
+    ("Cali", "Madrid"): 630, ("Cali", "Londres"): 660, ("Cali", "New York"): 360,
+    ("Cali", "Buenos Aires"): 380, ("Cali", "Miami"): 230,
+    ("Cartagena de Indias", "Madrid"): 570, ("Cartagena de Indias", "Londres"): 600,
+    ("Cartagena de Indias", "New York"): 300, ("Cartagena de Indias", "Buenos Aires"): 450,
+    ("Cartagena de Indias", "Miami"): 175,
+    ("Pereira", "Madrid"): 640, ("Pereira", "Londres"): 670, ("Pereira", "New York"): 360,
+    ("Pereira", "Buenos Aires"): 400, ("Pereira", "Miami"): 225,
+}
+
+
+def duracion_estimada(origen, destino):
+    """Minutos estimados de una ruta internacional en cualquier sentido, o None."""
+    return DURACION_ESTIMADA.get((origen, destino)) or DURACION_ESTIMADA.get((destino, origen))
+
+
+def duraciones_para_js():
+    """Mapa "Origen|Destino" -> minutos (ambos sentidos) para autocompletar en el formulario."""
+    datos = {}
+    for (o, d), minutos in DURACION_ESTIMADA.items():
+        datos[f"{o}|{d}"] = datos[f"{d}|{o}"] = minutos
+    return datos
+
 
 def zona_de(ciudad):
     """Zona horaria de una ciudad (Colombia por defecto)."""

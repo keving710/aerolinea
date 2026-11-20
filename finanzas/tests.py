@@ -12,13 +12,20 @@ from . import services
 from .models import Movimiento, Tarjeta
 
 
+VIGENTE = {"mes": 12, "anio": 2040, "cvv": "123"}
+
+
+def registrar(usuario, numero, tipo, saldo, **extra):
+    return services.registrar_tarjeta(usuario, numero, tipo, saldo, **{**VIGENTE, **extra})
+
+
 class FinanzasTests(TestCase):
     def setUp(self):
         self.ana = Usuario.objects.create_user("ana", rol="cliente")
         self.luz = Usuario.objects.create_user("luz", rol="cliente")
         self.admin = Usuario.objects.create_user("adm", rol="administrador")
-        self.tarjeta = services.registrar_tarjeta(self.ana, "4111 1111 1111 1111", "debito", "100.00")
-        self.otra = services.registrar_tarjeta(self.luz, "5555555555554444", "credito", "900")
+        self.tarjeta = registrar(self.ana, "4111 1111 1111 1111", "debito", "100.00")
+        self.otra = registrar(self.luz, "5555555555554444", "credito", "900")
         self.client.force_login(self.ana)
 
     def test_panel_individual_y_privado(self):
@@ -47,8 +54,8 @@ class FinanzasTests(TestCase):
 
     def test_duplicada_normalizada_y_saldo_cero(self):
         with self.assertRaises(ValidationError):
-            services.registrar_tarjeta(self.ana, "4111-1111-1111-1111", "credito", "100")
-        cero = services.registrar_tarjeta(self.ana, "4000000000000002", "credito", 0)
+            registrar(self.ana, "4111-1111-1111-1111", "credito", "100")
+        cero = registrar(self.ana, "4000000000000002", "credito", 0)
         self.assertEqual(cero.saldo, 0)
         self.assertFalse(cero.movimientos.exists())
 
@@ -56,9 +63,9 @@ class FinanzasTests(TestCase):
         for numero, tipo, saldo in [("abc", "debito", 0), ("４" * 16, "debito", 0),
                                    ("4000000000000002", "otro", 0), ("4000000000000002", "debito", -1)]:
             with self.subTest(numero=numero, tipo=tipo, saldo=saldo), self.assertRaises(ValidationError):
-                services.registrar_tarjeta(self.ana, numero, tipo, saldo)
+                registrar(self.ana, numero, tipo, saldo)
         with self.assertRaises(PermissionDenied):
-            services.registrar_tarjeta(self.admin, "4000000000000002", "credito", 0)
+            registrar(self.admin, "4000000000000002", "credito", 0)
 
     def test_recarga_suma_y_registra_saldo_resultante(self):
         m = services.recargar(self.ana, self.tarjeta.pk, "25.75", uuid.uuid4())
@@ -68,7 +75,7 @@ class FinanzasTests(TestCase):
         self.assertEqual(m.saldo_resultante, self.tarjeta.saldo)
 
     def test_pago_solo_descuenta_tarjeta_elegida_y_reembolso(self):
-        segunda = services.registrar_tarjeta(self.ana, "4000000000000002", "credito", "200")
+        segunda = registrar(self.ana, "4000000000000002", "credito", "200")
         m = services.cobrar(self.ana, segunda.pk, "60.50", uuid.uuid4())
         self.assertEqual(m.saldo_resultante, Decimal("139.50"))
         self.tarjeta.refresh_from_db()
@@ -183,6 +190,7 @@ class FinanzasTests(TestCase):
 
     def test_registro_http_saldo_propietario_no_manipulable(self):
         r = self.client.post(reverse("finanzas:nueva_tarjeta"), {"numero": "4000000000000002",
+            "vencimiento": "12/40", "cvv": "123",
             "tipo": "credito", "saldo": "40.50", "cliente": self.luz.pk})
         self.assertRedirects(r, reverse("finanzas:panel"))
         self.assertEqual(Tarjeta.objects.get(ultimos_cuatro="0002").cliente, self.ana)

@@ -29,22 +29,25 @@ def panel(request):
     })
 
 
-@sensitive_post_parameters("numero")
+@sensitive_post_parameters("numero", "cvv")
 @never_cache
 @SOLO_CLIENTE
 @require_http_methods(["GET", "POST"])
 def nueva_tarjeta(request):
     form = TarjetaForm(request.POST if request.method == "POST" else None)
     if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        mes, anio = d["vencimiento"]
         try:
-            services.registrar_tarjeta(request.user, **form.cleaned_data)
+            tarjeta = services.registrar_tarjeta(request.user, d["numero"], d["tipo"], d["saldo"],
+                                                 mes=mes, anio=anio, cvv=d["cvv"])
         except ValidationError as exc:
             form.add_error(None, exc)
         else:
-            messages.success(request, "Tarjeta registrada correctamente.")
+            messages.success(request, f"Tarjeta {tarjeta} registrada correctamente.")
             return redirect("finanzas:panel")
     return render(request, "finanzas/operacion.html", {
-        "form": form, "titulo": "Registrar tarjeta", "boton": "Guardar tarjeta ficticia",
+        "form": form, "titulo": "Registrar tarjeta", "boton": "Guardar tarjeta ficticia", "es_tarjeta": True,
     })
 
 

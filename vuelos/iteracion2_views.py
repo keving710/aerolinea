@@ -1,10 +1,12 @@
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import UploadedFile
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
+from . import reglas
 from .catalogo import buscar, disponibles
 from .iteracion2_forms import BusquedaForm, formulario_edicion, validar_vinculos
 from .models import Vuelo
@@ -39,7 +41,7 @@ def editar(request, codigo):
     bloqueados = list(Vuelo.objects.select_for_update().filter(Q(pk=raiz) | Q(vuelo_ida_id=raiz)).order_by("pk"))
     vuelo = next(v for v in bloqueados if v.pk == original.pk)
     motivo = vuelo.motivo_no_editable
-    form = formulario_edicion(vuelo, request.POST if request.method == "POST" else None)
+    form = formulario_edicion(vuelo, *((request.POST, request.FILES) if request.method == "POST" else (None, None)))
     if motivo:
         return render(request, "vuelos/editar.html", {"vuelo": vuelo, "motivo": motivo}, status=409)
     if request.method == "POST" and form.is_valid():
@@ -50,13 +52,18 @@ def editar(request, codigo):
         vuelo.salida = d["_salida_utc" if nacional else "_salida"]
         vuelo.llegada = d["_llegada_utc" if nacional else "_llegada"]
         vuelo.duracion_minutos = d["_minutos"]
+        imagen = d.get("imagen")
+        if imagen is False:  # El administrador marcó "Limpiar": vuelve a la ilustración.
+            vuelo.imagen = None
+        elif isinstance(imagen, UploadedFile):
+            vuelo.imagen = imagen
         try:
             validar_vinculos(vuelo)
             vuelo.full_clean()
         except ValidationError as exc:
             form.add_error(None, ValidationError(exc.messages))
         else:
-            vuelo.save(update_fields=["origen", "destino", "costo_persona", "salida", "llegada", "duracion_minutos"])
+            vuelo.save(update_fields=["origen", "destino", "costo_persona", "salida", "llegada", "duracion_minutos", "imagen"])
             messages.success(request, f"Vuelo {vuelo.codigo} actualizado correctamente.")
             return redirect("vuelos:detalle", codigo=vuelo.codigo)
-    return render(request, "vuelos/editar.html", {"vuelo": vuelo, "form": form})
+    return render(request, "vuelos/editar.html", {"vuelo": vuelo, "form": form, "duraciones": reglas.duraciones_para_js()})

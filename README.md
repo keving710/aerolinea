@@ -29,9 +29,22 @@ La iteración 2 incorpora finanzas simuladas, búsqueda pública, publicación y
 python -m venv venv && source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 export DEBUG=1                                       # Windows (PowerShell): $env:DEBUG="1"
-python manage.py migrate        # crea la BD SQLite y el usuario root
+python manage.py migrate        # crea la BD SQLite, el usuario root y las ciudades
 python manage.py runserver
-python manage.py test           # 99 pruebas (62 originales + 37 de iteración 2)
+python manage.py cargar_vuelos_demo   # opcional: vuelos simulados (ver abajo)
+python manage.py test           # 136 pruebas
+```
+
+### Vuelos simulados
+
+`python manage.py cargar_vuelos_demo` crea 40 vuelos nacionales y 12 internacionales (cada uno con su
+regreso) en los próximos 30 días, con rutas, duraciones y precios realistas. La mitad no tiene
+tiquetes vendidos (se pueden editar) y el resto tiene ocupación variada. Opciones:
+
+```bash
+python manage.py cargar_vuelos_demo --dias 60 --nacionales 80 --internacionales 20
+python manage.py cargar_vuelos_demo --limpiar    # borra antes los vuelos futuros sin ventas y vuelve a cargar
+python manage.py cargar_vuelos_demo --semilla 1  # mismos vuelos cada vez
 ```
 
 Root por defecto: usuario `root`, contraseña `Root2026!` (cámbiala en `/root/credenciales/`).

@@ -1,0 +1,6 @@
+{# HU 10: el código de vuelo se muestra de solo lectura; nunca lo ingresa el usuario. #}
+<div class="mb-3">
+  <label class="form-label" for="codigo_vuelo">Código de vuelo</label>
+  <input id="codigo_vuelo" class="form-control fw-semibold" value="{{ codigo }}" readonly aria-readonly="true" aria-describedby="codigo_vuelo_ayuda">
+  <div class="ayuda" id="codigo_vuelo_ayuda">{% if fijo %}El código del vuelo no se puede modificar.{% else %}Se asigna automáticamente al programar el vuelo; no es editable.{% endif %}</div>
+</div>

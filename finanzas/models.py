@@ -10,8 +10,20 @@ class Tarjeta(models.Model):
         DEBITO = "debito", "Débito"
         CREDITO = "credito", "Crédito"
 
+    class Franquicia(models.TextChoices):
+        VISA = "visa", "Visa"
+        MASTERCARD = "mastercard", "Mastercard"
+        AMEX = "amex", "American Express"
+        DINERS = "diners", "Diners Club"
+        DISCOVER = "discover", "Discover"
+        JCB = "jcb", "JCB"
+
     cliente = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="tarjetas")
     tipo = models.CharField(max_length=7, choices=Tipo.choices)
+    # Franquicia detectada a partir del número (simulación). El CVV nunca se guarda.
+    franquicia = models.CharField(max_length=12, choices=Franquicia.choices, blank=True, editable=False)
+    mes_vencimiento = models.PositiveSmallIntegerField(null=True, blank=True, editable=False)
+    anio_vencimiento = models.PositiveSmallIntegerField(null=True, blank=True, editable=False)
     # No se conserva PAN ni CVV: solo una huella HMAC y los últimos cuatro dígitos.
     huella = models.CharField(max_length=64, editable=False)
     ultimos_cuatro = models.CharField(max_length=4, editable=False)
@@ -24,10 +36,28 @@ class Tarjeta(models.Model):
             models.UniqueConstraint(fields=["cliente", "huella"], name="tarjeta_unica_cliente"),
             models.CheckConstraint(condition=Q(saldo__gte=0), name="tarjeta_saldo_no_negativo"),
             models.CheckConstraint(condition=Q(tipo__in=["debito", "credito"]), name="tarjeta_tipo_valido"),
+            models.CheckConstraint(condition=Q(mes_vencimiento__isnull=True) | Q(mes_vencimiento__gte=1, mes_vencimiento__lte=12),
+                                   name="tarjeta_mes_vencimiento_valido"),
         ]
 
+    @property
+    def vencimiento_texto(self):
+        if not (self.mes_vencimiento and self.anio_vencimiento):
+            return ""
+        return f"{self.mes_vencimiento:02d}/{self.anio_vencimiento % 100:02d}"
+
+    @property
+    def vencida(self):
+        """Una tarjeta es válida hasta el último día de su mes de vencimiento."""
+        if not (self.mes_vencimiento and self.anio_vencimiento):
+            return False
+        from django.utils import timezone
+        hoy = timezone.localdate()
+        return (self.anio_vencimiento, self.mes_vencimiento) < (hoy.year, hoy.month)
+
     def __str__(self):
-        return f"{self.get_tipo_display()} •••• {self.ultimos_cuatro}"
+        marca = f"{self.get_franquicia_display()} " if self.franquicia else ""
+        return f"{marca}{self.get_tipo_display()} •••• {self.ultimos_cuatro}"
 
 
 class Movimiento(models.Model):

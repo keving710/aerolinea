@@ -5,7 +5,8 @@
 {% else %}
 <p class="text-muted">{{ vuelo.get_tipo_display }} · El código, el tipo y la capacidad se conservan. Los horarios corresponden a la ciudad de salida y llegada.</p>
 <div class="alert alert-info">Este vuelo no tiene tiquetes vendidos y aún no ha salido; puedes editarlo.</div>
-<form method="post" novalidate>{% csrf_token %}{% include "_form.html" %}<button class="btn btn-primary mt-4">Guardar cambios</button></form>
+<form method="post" enctype="multipart/form-data" novalidate data-calculo-url="{% url 'vuelos:calcular' %}" data-tipo="{{ vuelo.tipo }}">{% csrf_token %}{% include "vuelos/_codigo.html" with codigo=vuelo.codigo fijo=True %}{% include "_form.html" %}{% include "vuelos/_calculo.html" %}<button class="btn btn-primary mt-4">Guardar cambios</button></form>
 {% endif %}
 <a class="btn btn-link mt-3" href="{% url 'vuelos:detalle' vuelo.codigo %}">Volver al vuelo</a>
 </div>{% endblock %}
+{% block scripts %}{% load static %}{{ duraciones|json_script:"duraciones-estimadas" }}<script src="{% static 'js/vuelo_form.js' %}"></script>{% endblock %}

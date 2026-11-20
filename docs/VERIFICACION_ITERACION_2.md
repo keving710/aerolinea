@@ -1,6 +1,6 @@
 # Verificación de la iteración 2
 
-Fecha: 8 de noviembre de 2026. Repositorio: `C:\Users\miloj\Documents\ChatGPT\Airlock\aerolinea`.
+Fecha: 8 de noviembre de 2026.
 
 ## Resultado automatizado
 

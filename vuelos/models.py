@@ -3,7 +3,24 @@ from django.db import models, transaction
 from django.utils import timezone
 from django.db.models import F, Q
 
+from django.core.exceptions import ValidationError
+
 from . import reglas
+
+IMAGEN_VUELO_MAX_BYTES = 3 * 1024 * 1024  # 3 MB
+
+
+def validar_imagen_vuelo(archivo):
+    """Imagen del vuelo elegida por el administrador: JPG, PNG o WEBP de máximo 3 MB."""
+    nombre = (getattr(archivo, "name", "") or "").lower()
+    if not nombre.endswith((".jpg", ".jpeg", ".png", ".webp")):
+        raise ValidationError("La imagen debe estar en formato JPG, PNG o WEBP.")
+    try:
+        tamano = archivo.size
+    except (OSError, ValueError):
+        return  # Archivo ya guardado que no está disponible: no se valida de nuevo.
+    if tamano > IMAGEN_VUELO_MAX_BYTES:
+        raise ValidationError("La imagen no puede superar los 3 MB.")
 
 
 class Consecutivo(models.Model):
@@ -19,6 +36,12 @@ class Consecutivo(models.Model):
             contador.ultimo += 1
             contador.save(update_fields=["ultimo"])
             return contador.ultimo
+
+    @classmethod
+    def proximo_codigo(cls, nombre="vuelo"):
+        """Código que recibirá el próximo vuelo (solo para mostrarlo en el formulario, HU 10)."""
+        ultimo = cls.objects.filter(nombre=nombre).values_list("ultimo", flat=True).first() or 0
+        return f"VU-{ultimo + 1:05d}"
 
 
 class Vuelo(models.Model):
@@ -50,6 +73,8 @@ class Vuelo(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="vuelos_creados"
     )
     estado = models.CharField(max_length=12, choices=Estado.choices, default=Estado.PROGRAMADO)
+    imagen = models.ImageField("imagen del vuelo", upload_to="vuelos/", blank=True, null=True,
+                               validators=[validar_imagen_vuelo])
     creado_en = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -85,6 +110,23 @@ class Vuelo(models.Model):
     @property
     def imagen_catalogo(self):
         return f"img/vuelo-{self.tipo}.svg"
+
+    @property
+    def imagen_url(self):
+        """Imagen elegida por el administrador o, si no hay, la ilustración según el tipo."""
+        if self.imagen:
+            try:
+                return self.imagen.url
+            except ValueError:
+                pass
+        from django.templatetags.static import static
+        return static(self.imagen_catalogo)
+
+    @property
+    def imagen_alt(self):
+        if self.imagen:
+            return f"Imagen del vuelo {self.origen} – {self.destino}"
+        return f"Ilustración de un vuelo {self.get_tipo_display().lower()}"
 
     # Zonas horarias locales de cada extremo.
     @property

@@ -1,0 +1,9 @@
+{# Duración y llegada calculadas en vivo (static/js/vuelo_form.js). El servidor recalcula todo al guardar. #}
+<div class="calculo-vuelo mt-4" data-calculo="{{ sufijo|default:'' }}" aria-live="polite">
+  {% if titulo %}<div class="separador mb-2"><i class="bi bi-calculator me-1"></i>{{ titulo }}</div>{% endif %}
+  <div class="row g-3">
+    <div class="col-md-6"><div class="dato"><small>Duración del vuelo (calculada)</small><b data-salida="duracion">—</b></div></div>
+    <div class="col-md-6"><div class="dato"><small>Llegada · hora local del destino</small><b data-salida="llegada">—</b></div></div>
+  </div>
+  <div class="small text-danger mt-1" data-salida="error"></div>
+</div>

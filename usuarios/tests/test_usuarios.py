@@ -297,3 +297,13 @@ class Contrasenas(TestCase):
         r = self.registro("Ab-1")
         self.assertEqual(r.status_code, 200)
         self.assertFalse(Usuario.objects.filter(username="ana").exists())
+
+class CiudadesPorDefecto(TestCase):
+    """Tras `migrate` deben existir ciudades para poder registrarse sin comandos extra."""
+
+    def test_migrate_carga_ciudades(self):
+        self.assertTrue(Ciudad.objects.filter(nombre="Pereira", departamento__nombre="Risaralda").exists())
+        self.assertGreater(Ciudad.objects.count(), 30)
+
+    def test_registro_muestra_ciudades(self):
+        self.assertContains(self.client.get(reverse("usuarios:registro")), "Medellín, Antioquia")

@@ -60,6 +60,12 @@ class IngresarView(LoginView):
     def get_success_url(self):
         return self.get_redirect_url() or destino_por_rol(self.request.user)
 
+    def form_valid(self, form):
+        # HU 2: mensaje de inicio de sesión exitoso.
+        respuesta = super().form_valid(form)
+        messages.success(self.request, f"¡Hola, {self.request.user.nombre_completo}! Iniciaste sesión correctamente.")
+        return respuesta
+
 
 @require_POST
 def salir(request):

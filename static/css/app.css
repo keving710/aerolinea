@@ -83,3 +83,5 @@ footer.pie { color: #6b7a8c; font-size: .85rem; text-align: center; padding: 1.5
 .saldo-total { border-radius: 1.1rem; background: linear-gradient(135deg, #082a4a, #0d3b66); color: white; }
 :focus-visible { outline: 3px solid #e7a10b; outline-offset: 3px; }
 @media (max-width: 575px) { .hero { padding: 2rem 1.25rem; } .datos-vuelo { font-size: .85rem; } }
+.imagen-vuelo-grande { height: 240px; }
+.calculo-vuelo .dato b { font-size: 1.05rem; }
