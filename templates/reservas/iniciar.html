@@ -1,0 +1,43 @@
+{% extends "base.html" %}{% load static ui %}
+{% block titulo %}{% if accion == 'comprar' %}Comprar{% else %}Reservar{% endif %} {{ vuelo.codigo }}{% endblock %}
+{% block contenido %}
+<h1 class="h2">{% if accion == 'comprar' %}Comprar tiquetes{% else %}Reservar tiquetes{% endif %}</h1>
+<section class="tarjeta p-4 mb-4" aria-label="Vuelo seleccionado">
+  <div class="d-flex flex-wrap justify-content-between gap-2">
+    <div><span class="codigo">{{ vuelo.codigo }}</span> <span class="badge text-bg-primary">{{ vuelo.get_tipo_display }}</span>
+      <h2 class="h4 mt-1 mb-1">{{ vuelo.origen }} → {{ vuelo.destino }}</h2>
+      <div class="text-muted">{{ vuelo.salida_local }} (hora de {{ vuelo.origen }}) · Llegada {{ vuelo.llegada_local }} (hora de {{ vuelo.destino }}) · {{ vuelo.duracion_texto }}</div></div>
+    <div class="text-end"><div class="fs-4 fw-bold">{% include "vuelos/_precio.html" with v=vuelo %} <small class="fs-6 fw-normal">COP / persona</small></div><small class="text-muted">{{ vuelo.cupos_disponibles }} cupos disponibles</small></div>
+  </div>
+</section>
+{% if accion == 'reservar' %}<div class="alert alert-info">La reserva retiene tus cupos hasta 24 horas sin pagar. Pasado ese tiempo se liberan automáticamente; puedes pagarla o cancelarla desde «Mis reservas».</div>{% endif %}
+{% if errores %}<div class="alert alert-danger" role="alert">{% for e in errores %}<div class="fw-semibold">{{ e }}</div>{% endfor %}</div>{% endif %}
+<form method="post" novalidate>{% csrf_token %}
+  <section class="tarjeta p-4 mb-4"><h2 class="h5">Trayecto</h2>
+    <div class="d-flex flex-wrap gap-4 mb-2" role="radiogroup" aria-label="Trayecto">
+      {% for radio in trayecto.trayecto %}<div class="form-check">{{ radio.tag }}<label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label></div>{% endfor %}
+    </div>
+    <div id="bloque-regreso" {% if trayecto.trayecto.value != 'completo' %}hidden{% endif %}>
+      <label class="form-label" for="{{ trayecto.regreso.id_for_label }}">{{ trayecto.regreso.label }}</label>
+      {{ trayecto.regreso|bs }}
+      {% if not trayecto.opciones %}<div class="ayuda">No hay vuelos de regreso disponibles para esta ruta por ahora.</div>{% endif %}
+      {% for e in trayecto.regreso.errors %}<div class="error" role="alert">{{ e }}</div>{% endfor %}
+      <div class="ayuda">Los viajeros y las clases elegidas aplican a la ida y al regreso.</div>
+    </div>
+  </section>
+  <section class="tarjeta p-4 mb-4"><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div><h2 class="h5 mb-0">Datos de los viajeros</h2><small class="text-muted">Todos los datos son obligatorios. Máximo {{ maximo }} viajeros por vuelo. <span id="cantidad-viajeros">{{ formset.total_form_count }}</span> viajero(s).</small></div>
+    <div class="btn-group"><button type="button" class="btn btn-outline-primary btn-sm" id="agregar-viajero"><i class="bi bi-person-plus me-1"></i>Agregar viajero</button><button type="button" class="btn btn-outline-secondary btn-sm" id="quitar-viajero">Quitar último</button></div></div>
+    <p class="small text-muted">Primera clase: sillas {{ clases.primera.0 }}–{{ clases.primera.1 }}. Clase económica: sillas {{ clases.economica.0 }}–{{ clases.economica.1 }}. Te asignamos una silla al azar dentro de la clase que elijas. Un menor de edad debe viajar con al menos un mayor de edad.</p>
+    {{ formset.management_form }}
+    {% for e in formset.non_form_errors %}<div class="alert alert-danger" role="alert">{{ e }}</div>{% endfor %}
+    <div id="viajeros" data-maximo="{{ maximo }}">
+      {% for form in formset %}<div class="viajero border rounded p-3 mb-3"><h3 class="h6">Viajero <span class="numero-viajero">{{ forloop.counter }}</span></h3>{% include "_form.html" %}</div>{% endfor %}
+    </div>
+    <template id="plantilla-viajero"><div class="viajero border rounded p-3 mb-3"><h3 class="h6">Viajero <span class="numero-viajero"></span></h3>{% include "_form.html" with form=formset.empty_form %}</div></template>
+  </section>
+  <button class="btn btn-primary btn-lg">{% if accion == 'comprar' %}Agregar al carrito{% else %}Confirmar reserva{% endif %}</button>
+  <a class="btn btn-link" href="{% url 'vuelos:busqueda' %}">Volver a la búsqueda</a>
+</form>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/viajeros.js' %}"></script>{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block titulo %}Cancelar {{ vuelo.codigo }}{% endblock %}
+{% block contenido %}
+<div class="tarjeta tarjeta-form p-4 p-md-5">
+  <div class="icono-titulo bg-danger-subtle text-danger" aria-hidden="true"><i class="bi bi-x-octagon"></i></div>
+  <h1 class="h3">Cancelar vuelo</h1>
+  <p class="text-muted">{{ vuelo.codigo }} · {{ vuelo.origen }} → {{ vuelo.destino }} · {{ vuelo.salida_local }}</p>
+  {% if motivo %}<div class="alert alert-warning">{{ motivo }}</div>
+  {% else %}
+  <ul>
+    <li><strong>{{ comprados }}</strong> tiquete(s) comprado(s): se reubican en otro vuelo de la ruta o se reintegra el dinero a la tarjeta con la que pagaron.</li>
+    <li><strong>{{ reservados }}</strong> tiquete(s) reservado(s): se reubican o se liberan sin costo.</li>
+  </ul>
+  {% if alternativas %}<p class="mb-1">Vuelos alternativos en la ruta (se prueba el más cercano primero):</p><ul class="small">{% for a in alternativas %}<li>{{ a.codigo }} · {{ a.salida_local }} · {{ a.cupos_disponibles }} cupos</li>{% endfor %}</ul>
+  {% else %}<div class="alert alert-info">No hay vuelos alternativos en esta ruta: todos los compradores recibirán el reintegro.</div>{% endif %}
+  <form method="post" novalidate>{% csrf_token %}{% include "_form.html" %}<button class="btn btn-danger w-100 mt-4">Cancelar vuelo {{ vuelo.codigo }}</button></form>
+  {% endif %}
+  <a class="btn btn-link mt-3" href="{% url 'vuelos:detalle' vuelo.codigo %}">Volver al vuelo</a>
+</div>
+{% endblock %}

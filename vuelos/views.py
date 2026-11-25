@@ -20,10 +20,18 @@ def contexto_formulario(**extra):
     return {"codigo": Consecutivo.proximo_codigo(), "duraciones": reglas.duraciones_para_js(), **extra}
 
 
+ESTADOS_LISTA = {"programado": "Vuelos programados", "realizado": "Vuelos realizados", "cancelado": "Vuelos cancelados"}
+
+
 @SOLO_ADMIN
-def lista(request):
-    vuelos = Vuelo.objects.select_related("vuelo_ida")
-    return render(request, "vuelos/lista.html", {"vuelos": vuelos})
+def lista(request, estado="programado"):
+    """Programados, realizados (HU 18) y cancelados (HU 17), cada uno en su categoría."""
+    from reservas import servicios
+    servicios.mantenimiento()
+    vuelos = Vuelo.objects.select_related("vuelo_ida").filter(estado=estado)
+    if estado == Vuelo.Estado.REALIZADO:
+        vuelos = vuelos.order_by("-salida")
+    return render(request, "vuelos/lista.html", {"vuelos": vuelos, "estado": estado, "titulo": ESTADOS_LISTA[estado]})
 
 
 @SOLO_ADMIN

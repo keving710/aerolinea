@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% load ui %}{% block titulo %}{{ reserva.codigo }}{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+  <div><p class="text-muted mb-0">Código de reserva</p><h1 class="h2 mb-1">{{ reserva.codigo }}</h1>
+    <span class="badge {% if reserva.estado == 'comprada' %}text-bg-success{% elif reserva.estado == 'reservada' %}text-bg-primary{% else %}text-bg-secondary{% endif %}">{{ reserva.get_estado_display }}</span>
+    <span class="badge text-bg-light border">{{ reserva.get_trayecto_display }}</span></div>
+  <div class="text-end"><div class="text-muted small">Total vigente</div><div class="fs-3 fw-bold">${{ total|floatformat:"0g" }} <small class="fs-6">COP</small></div></div>
+</div>
+{% if reserva.estado == 'reservada' %}<div class="alert alert-info">Tus cupos se retienen hasta el <strong>{{ reserva.expira_en|date:"d/m/Y H:i" }}</strong>. Después se liberan automáticamente si no pagas.</div>
+{% elif reserva.estado == 'vencida' %}<div class="alert alert-warning">Esta reserva venció y sus cupos fueron liberados.</div>
+{% elif reserva.estado == 'cancelada' %}<div class="alert alert-secondary">Cancelada el {{ reserva.cancelada_en|date:"d/m/Y H:i" }}.</div>
+{% elif reserva.estado == 'comprada' %}<div class="alert alert-success">Compra confirmada con la tarjeta •••• {{ reserva.tarjeta.ultimos_cuatro }}. Enviamos el código a cada viajero; lo necesitarán para el check-in.</div>{% endif %}
+<section class="tarjeta p-3 mb-4">{% include "reservas/_tiquetes.html" %}</section>
+{% if reserva.activa and hay_activos %}
+<div class="row g-3">
+  {% if form_pago %}<div class="col-lg-7"><section class="tarjeta p-4"><h2 class="h5">Pagar esta reserva</h2><p class="text-muted small">Se cobra el valor con el que reservaste.</p>
+    {% if form_pago.errors %}<div class="alert alert-danger" role="alert">{{ form_pago.non_field_errors }}{% for e in form_pago.tarjeta.errors %}<div>{{ e }}</div>{% endfor %}</div>{% endif %}
+    {% if form_pago.fields.tarjeta.queryset.exists %}<form method="post" action="{% url 'reservas:pagar' reserva.codigo %}">{% csrf_token %}{{ form_pago.total }}
+      <label class="form-label" for="{{ form_pago.tarjeta.id_for_label }}">Tarjeta de pago</label>{{ form_pago.tarjeta|bs }}
+      <button class="btn btn-primary mt-3">Pagar ${{ total|floatformat:"0g" }}</button></form>
+    {% else %}<p>Necesitas una tarjeta vigente. <a href="{% url 'finanzas:nueva_tarjeta' %}">Registrar tarjeta</a></p>{% endif %}</section></div>{% endif %}
+  <div class="col-lg-5"><section class="tarjeta p-4 h-100"><h2 class="h5">Cancelar</h2>
+    {% if motivo_no_cancelable %}<p class="text-muted mb-0">{{ motivo_no_cancelable }}</p>
+    {% else %}<p class="text-muted small">{% if reserva.estado == 'comprada' %}Se libera tu silla y reintegramos el dinero a tu tarjeta. Puedes cancelar hasta 1 hora antes del vuelo.{% else %}Se liberan tus cupos. Puedes cancelar durante las 24 horas de la reserva.{% endif %}</p>
+    <form method="post" action="{% url 'reservas:cancelar' reserva.codigo %}">{% csrf_token %}<button class="btn btn-outline-danger">Cancelar {% if reserva.estado == 'comprada' %}compra{% else %}reserva{% endif %}</button></form>{% endif %}</section></div>
+</div>{% endif %}
+<a class="btn btn-link mt-3 ps-0" href="{% url 'reservas:historial' %}">Volver a mis reservas</a>
+{% endblock %}

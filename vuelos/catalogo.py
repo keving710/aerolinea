@@ -20,7 +20,7 @@ def buscar(datos):
             qs = qs.filter(**{campo: datos[campo]})
     if datos.get("codigo"):
         qs = qs.filter(codigo__icontains=datos["codigo"])
-    for nombre, lookup in (("costo_min", "costo_persona__gte"), ("costo_max", "costo_persona__lte"),
+    for nombre, lookup in (("costo_min", "costo_vigente__gte"), ("costo_max", "costo_vigente__lte"),
                            ("duracion_min", "duracion_minutos__gte"), ("duracion_max", "duracion_minutos__lte")):
         if datos.get(nombre) is not None:
             qs = qs.filter(**{lookup: datos[nombre]})
@@ -43,4 +43,6 @@ def buscar(datos):
                 condicion &= Q(**{alias: datos["hora"]})
             condiciones |= condicion
         qs = qs.filter(condiciones)
-    return qs.order_by(datos.get("orden") or "salida", "pk")
+    # El precio que se ordena y filtra es el vigente, con la promoción aplicada (HU 16).
+    orden = {"costo_persona": "costo_vigente"}.get(datos.get("orden"), datos.get("orden") or "salida")
+    return qs.order_by(orden, "pk")

@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.views import LoginView
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .forms import (
@@ -48,6 +49,9 @@ def registro(request):
         usuario = form.save()
         login(request, usuario)
         messages.success(request, "¡Registro exitoso! Ya puedes buscar y comprar vuelos.")
+        siguiente = request.GET.get("next", "")
+        if siguiente and url_has_allowed_host_and_scheme(siguiente, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+            return redirect(siguiente)
         return redirect("inicio")
     return render(request, "usuarios/registro.html", {"form": form})
 

@@ -11,6 +11,7 @@ urlpatterns = [
     path("", include("usuarios.urls")),
     path("vuelos/", include("vuelos.urls")),
     path("billetera/", include("finanzas.urls")),
+    path("reservas/", include("reservas.urls")),
 ]
 
 # Mensaje de "acceso restringido" cuando un rol intenta algo que no le corresponde.

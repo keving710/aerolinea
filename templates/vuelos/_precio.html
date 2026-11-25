@@ -1,0 +1,1 @@
+{% if v.en_promocion %}<s class="text-muted fs-6 fw-normal">${{ v.costo_persona|floatformat:"0g" }}</s> <span class="badge text-bg-danger align-middle">-{{ v.descuento_porcentaje|floatformat:"-2" }}%</span><br>{% endif %}${{ v.costo_vigente|floatformat:"0g" }}
