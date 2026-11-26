@@ -19,7 +19,10 @@
     <div class="collapse navbar-collapse" id="menu">
       <ul class="navbar-nav me-auto gap-lg-1 mt-2 mt-lg-0">
         <li class="nav-item"><a class="nav-link" href="{% url 'vuelos:busqueda' %}"><i class="bi bi-search me-1" aria-hidden="true"></i>Buscar vuelos</a></li>
-        {% if user.es_cliente %}<li class="nav-item"><a class="nav-link" href="{% url 'finanzas:panel' %}">Mi billetera</a></li>{% endif %}
+        {% if user.es_cliente %}
+          <li class="nav-item"><a class="nav-link" href="{% url 'reservas:historial' %}"><i class="bi bi-ticket-perforated me-1" aria-hidden="true"></i>Mis reservas</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'reservas:carrito' %}"><i class="bi bi-cart3 me-1" aria-hidden="true"></i>Carrito</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'finanzas:panel' %}">Mi billetera</a></li>{% endif %}
         {% if user.is_authenticated and user.es_root %}
           <li class="nav-item"><a class="nav-link" href="{% url 'usuarios:administradores' %}"><i class="bi bi-people me-1"></i>Administradores</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'usuarios:root_credenciales' %}"><i class="bi bi-shield-lock me-1"></i>Mis credenciales</a></li>

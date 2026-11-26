@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block titulo %}Mis reservas{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3"><div><h1 class="h2 mb-1">Mis compras y reservas</h1><p class="text-muted mb-0">Vigentes, canceladas y vencidas, con el estado de tu check-in.</p></div>
+<form method="get" class="d-flex gap-2"><label class="visually-hidden" for="estado">Estado</label><select class="form-select" id="estado" name="estado"><option value="">Todas</option>{% for valor, texto in estados %}<option value="{{ valor }}" {% if valor == estado %}selected{% endif %}>{{ texto }}</option>{% endfor %}</select><button class="btn btn-outline-primary">Filtrar</button></form></div>
+{% for r in page_obj %}
+<section class="tarjeta p-4 mb-3">
+  <div class="d-flex flex-wrap justify-content-between gap-2 mb-2"><div><a class="h5 text-decoration-none" href="{% url 'reservas:detalle' r.codigo %}">{{ r.codigo }}</a>
+    <span class="badge {% if r.estado == 'comprada' %}text-bg-success{% elif r.estado == 'reservada' %}text-bg-primary{% else %}text-bg-secondary{% endif %}">{{ r.get_estado_display }}</span>
+    <span class="badge text-bg-light border">{{ r.get_trayecto_display }}</span></div>
+    <small class="text-muted">Creada {{ r.creada_en|date:"d/m/Y H:i" }}{% if r.estado == 'reservada' %} · vence {{ r.expira_en|date:"d/m/Y H:i" }}{% endif %}</small></div>
+  {% include "reservas/_tiquetes.html" with reserva=r tiquetes=r.tiquetes.all %}
+</section>
+{% empty %}<div class="tarjeta p-5 text-center"><h2 class="h4">Aún no tienes compras ni reservas</h2><a class="btn btn-primary mt-2" href="{% url 'vuelos:busqueda' %}">Buscar vuelos</a></div>{% endfor %}
+{% include "_paginacion.html" %}
+{% endblock %}

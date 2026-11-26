@@ -1,0 +1,13 @@
+<div class="table-responsive"><table class="table align-middle mb-0">
+  <caption class="visually-hidden">Tiquetes de {{ reserva.codigo }}</caption>
+  <thead><tr><th scope="col">Tramo</th><th scope="col">Vuelo</th><th scope="col">Viajero</th><th scope="col">Clase y silla</th><th scope="col" class="text-end">Valor</th><th scope="col">Estado</th><th scope="col">Check-in</th></tr></thead>
+  <tbody>{% for t in tiquetes %}<tr{% if t.estado == 'cancelado' %} class="text-muted"{% endif %}>
+    <td>{{ t.get_tramo_display }}</td>
+    <td><strong>{{ t.vuelo.codigo }}</strong><br><small>{{ t.vuelo.origen }} → {{ t.vuelo.destino }}<br>{{ t.vuelo.salida_local }}</small>{% if t.reubicado_desde_id %}<br><span class="badge text-bg-warning">Reubicado</span>{% endif %}</td>
+    <td>{{ t.nombre_completo }}<br><small>{{ t.documento }}</small></td>
+    <td>{{ t.get_clase_display }}<br>Silla {{ t.silla }}</td>
+    <td class="text-end text-nowrap">${{ t.valor|floatformat:"0g" }}</td>
+    <td>{% if t.estado == 'activo' %}<span class="badge text-bg-success">Activo</span>{% else %}<span class="badge text-bg-secondary">Cancelado</span>{% if t.motivo_cancelacion %}<br><small>{{ t.motivo_cancelacion }}</small>{% endif %}{% endif %}</td>
+    <td>{% if t.estado == 'activo' %}{{ t.estado_checkin }}{% else %}—{% endif %}</td>
+  </tr>{% endfor %}</tbody>
+</table></div>

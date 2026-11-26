@@ -1,4 +1,4 @@
-# Sistema de compra y reserva de tiquetes aéreos — Iteraciones 1 y 2
+# Sistema de compra y reserva de tiquetes aéreos — Iteraciones 1, 2 y 3
 
 Python 3.13 · Django 5.2 · PostgreSQL (Neon/Supabase) · Vercel · Cloudinary (fotos).
 
@@ -21,7 +21,7 @@ Python 3.13 · Django 5.2 · PostgreSQL (Neon/Supabase) · Vercel · Cloudinary 
 
 Los datos de usuario siguen el diagrama entidad-relación (DNI, nombres, apellidos, fecha y lugar de nacimiento, dirección de facturación, género, correo, usuario, contraseña, rol).
 
-La iteración 2 incorpora finanzas simuladas, búsqueda pública, publicación y edición de vuelos. Quedan para siguientes iteraciones: noticias, compra/reserva de tiquetes, cancelaciones, promociones, check-in y chatbot.
+La iteración 2 incorpora finanzas simuladas, búsqueda pública, publicación y edición de vuelos. La iteración 3 añade compra y reserva, cancelaciones, promociones y vuelos realizados. Quedan para la iteración 4: noticias, mensajería, check-in, recomendación y chatbot.
 
 ## Ejecutar en local
 
@@ -32,7 +32,7 @@ export DEBUG=1                                       # Windows (PowerShell): $en
 python manage.py migrate        # crea la BD SQLite, el usuario root y las ciudades
 python manage.py runserver
 python manage.py cargar_vuelos_demo   # opcional: vuelos simulados (ver abajo)
-python manage.py test           # 136 pruebas
+python manage.py test           # 246 pruebas
 ```
 
 ### Vuelos simulados
@@ -89,3 +89,28 @@ Implementa HU **9, 15, 19, 24, 25 y 34–39**, conservando las funciones de usua
 Aplicar `python manage.py migrate` antes de iniciar una instalación existente. En Windows puede usarse `.\.venv\Scripts\python.exe` y `$env:DEBUG = "1"`.
 
 Ver [criterios, arquitectura, seguridad, contratos y validación de la iteración 2](docs/ITERACION_2.md).
+
+## Iteración 3
+
+Implementa HU **16, 17, 18 y 26–33**: compra y reserva de tiquetes, cancelaciones, promociones y vuelos realizados.
+
+| HU | Historia | Dónde |
+|----|----------|-------|
+| 26 | Inicio de compra o reserva desde los resultados | Botones **Comprar** / **Reservar** en `/vuelos/buscar/`, portada y detalle; el visitante es enviado a registrarse |
+| 27 | Datos de los viajeros | `/reservas/vuelo/<código>/comprar/` o `/reservar/` (todos los campos obligatorios; un menor no viaja solo) |
+| 28 | Reserva de tiquetes | Retiene cupos 24 h; máx. 5 por vuelo; sin viajeros duplicados; root y administrador no pueden |
+| 29 | Compra con carrito | `/reservas/carrito/`: elige la tarjeta, valida saldo, solo ida o ida y vuelta |
+| 30 | Clase y silla | Primera clase (nacional 1–25, internacional 1–50) o económica; silla aleatoria y libre |
+| 31 | Código de reserva y correo | `RES-XXXXXXXX` único, enviado a cada viajero |
+| 32 | Cancelación de compra o reserva | `/reservas/<código>/`: compra hasta 1 h antes del vuelo (con reintegro); reserva dentro de sus 24 h |
+| 33 | Histórico | `/reservas/`: compras y reservas con su estado y el estado del check-in |
+| 16 | Promociones | `/vuelos/<código>/promocion/`: descuento solo sobre los cupos disponibles |
+| 17 | Cancelación de vuelos | `/vuelos/<código>/cancelar/`: reubica o reintegra a cada pasajero |
+| 18 | Vuelos realizados | `/vuelos/realizados/` (también `/vuelos/cancelados/`) |
+
+Aplica `python manage.py migrate` en instalaciones existentes (nueva app `reservas` y dos campos en `vuelos`).
+`python manage.py mantener_reservas` marca como realizados los vuelos que ya salieron y libera las reservas vencidas; esto también ocurre solo, como máximo cada 30 s, al navegar el sitio y en cada compra o reserva.
+
+Los correos se imprimen en la consola si no defines `EMAIL_HOST` (ver `.env.example`).
+
+Ver [decisiones, reglas y verificación de la iteración 3](docs/ITERACION_3.md).

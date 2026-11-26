@@ -24,9 +24,11 @@ class Tarjeta(models.Model):
     franquicia = models.CharField(max_length=12, choices=Franquicia.choices, blank=True, editable=False)
     mes_vencimiento = models.PositiveSmallIntegerField(null=True, blank=True, editable=False)
     anio_vencimiento = models.PositiveSmallIntegerField(null=True, blank=True, editable=False)
-    # No se conserva PAN ni CVV: solo una huella HMAC y los últimos cuatro dígitos.
+    # Entorno de simulación: se guarda el número FICTICIO completo para mostrarlo en la billetera.
+    # El CVV nunca se guarda. Las tarjetas anteriores a este campo se muestran enmascaradas.
     huella = models.CharField(max_length=64, editable=False)
     ultimos_cuatro = models.CharField(max_length=4, editable=False)
+    numero_completo = models.CharField(max_length=19, blank=True, default="", editable=False)
     saldo = models.DecimalField(max_digits=14, decimal_places=2, default=0, editable=False)
     creada_en = models.DateTimeField(auto_now_add=True)
 
@@ -39,6 +41,18 @@ class Tarjeta(models.Model):
             models.CheckConstraint(condition=Q(mes_vencimiento__isnull=True) | Q(mes_vencimiento__gte=1, mes_vencimiento__lte=12),
                                    name="tarjeta_mes_vencimiento_valido"),
         ]
+
+    @property
+    def numero_visible(self):
+        """Número ficticio agrupado (4-4-4-4, o 4-6-5 en Amex); enmascarado si no se guardó completo."""
+        n = self.numero_completo
+        if not n:
+            return f"•••• {self.ultimos_cuatro}"
+        cortes = (4, 10) if self.franquicia == self.Franquicia.AMEX else tuple(range(4, len(n), 4))
+        partes, ini = [], 0
+        for c in (*cortes, len(n)):
+            partes.append(n[ini:c]); ini = c
+        return " ".join(p for p in partes if p)
 
     @property
     def vencimiento_texto(self):
@@ -57,7 +71,7 @@ class Tarjeta(models.Model):
 
     def __str__(self):
         marca = f"{self.get_franquicia_display()} " if self.franquicia else ""
-        return f"{marca}{self.get_tipo_display()} •••• {self.ultimos_cuatro}"
+        return f"{marca}{self.get_tipo_display()} {self.numero_visible}"
 
 
 class Movimiento(models.Model):

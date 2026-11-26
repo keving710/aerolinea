@@ -8,7 +8,7 @@ class PreservacionIteracion1Tests(TransactionTestCase):
     def test_migracion_conserva_vuelo_existente(self):
         executor = MigrationExecutor(connection)
         nuevas = executor.loader.graph.leaf_nodes()
-        anterior = [nodo for nodo in nuevas if nodo[0] != "vuelos"] + [("vuelos", "0002_alter_vuelo_estado")]
+        anterior = [nodo for nodo in nuevas if nodo[0] not in ("vuelos", "reservas")] + [("vuelos", "0002_alter_vuelo_estado")]
         try:
             executor.migrate(anterior)
             apps = executor.loader.project_state(anterior).apps
@@ -27,5 +27,8 @@ class PreservacionIteracion1Tests(TransactionTestCase):
             self.assertEqual(actual.creado_por_id, admin.pk)
             self.assertEqual(actual.tiquetes_vendidos, 0)
             self.assertEqual(actual.cupos_reservados, 0)
+            # Iteración 3: sin promoción, el valor vigente es el costo por persona.
+            self.assertEqual(actual.descuento_porcentaje, 0)
+            self.assertEqual(actual.costo_vigente, actual.costo_persona)
         finally:
             MigrationExecutor(connection).migrate(nuevas)

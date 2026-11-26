@@ -66,16 +66,17 @@ class RegistroYUsoDeTarjetas(TestCase):
         return {"numero": "3782 822463 10005", "vencimiento": "08/39", "cvv": "1234",
                 "tipo": "credito", "saldo": "500000", **extra}
 
-    def test_registro_guarda_franquicia_y_vencimiento_sin_cvv_ni_numero(self):
+    def test_registro_guarda_franquicia_vencimiento_y_numero_visible_sin_cvv(self):
         self.assertRedirects(self.client.post(self.ruta, self.datos()), reverse("finanzas:panel"))
         t = Tarjeta.objects.get()
         self.assertEqual((t.franquicia, t.mes_vencimiento, t.anio_vencimiento, t.ultimos_cuatro), ("amex", 8, 2039, "0005"))
-        self.assertEqual(str(t), "American Express Crédito •••• 0005")
+        self.assertEqual(str(t), "American Express Crédito 3782 822463 10005")
         guardado = str(t.__dict__)
         self.assertNotIn("1234", guardado)
-        self.assertNotIn("378282246310005", guardado)
+        self.assertEqual(t.numero_completo, "378282246310005")
         panel = self.client.get(reverse("finanzas:panel"))
         self.assertContains(panel, "American Express")
+        self.assertContains(panel, "3782 822463 10005")
         self.assertContains(panel, "Vence 08/39")
 
     def test_errores_por_campo(self):

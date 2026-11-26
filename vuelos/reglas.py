@@ -8,6 +8,10 @@ UTC = dt_timezone.utc
 CAPACIDAD_NACIONAL = 150
 CAPACIDAD_INTERNACIONAL = 250
 
+# Sillas de primera clase: nacional 1-25 (de 150) e internacional 1-50 (de 250); el resto es económica.
+PRIMERA_CLASE_NACIONAL = 25
+PRIMERA_CLASE_INTERNACIONAL = 50
+
 CIUDADES_NACIONALES = [
     "Arauca", "Armenia", "Barranquilla", "Bogotá", "Bucaramanga", "Cali",
     "Cartagena de Indias", "Cúcuta", "Florencia", "Ibagué", "Inírida", "Leticia",

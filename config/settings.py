@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "usuarios",
     "vuelos",
     "finanzas",
+    "reservas",
 ]
 
 MIDDLEWARE = [
@@ -76,6 +77,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Libera reservas vencidas y marca vuelos realizados (HU 18 y 28), como máximo cada 30 s.
+    "reservas.middleware.MantenimientoMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -163,6 +166,22 @@ STORAGES = {
 if os.environ.get("CLOUDINARY_URL"):
     INSTALLED_APPS += ["cloudinary_storage", "cloudinary"]
     STORAGES["default"] = {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"}
+
+# --------------------------------------------------------------------------
+# Correo (HU 31: código de reserva a cada viajero)
+# --------------------------------------------------------------------------
+# Con EMAIL_HOST se envía por SMTP; sin él los correos se imprimen en la consola/registros
+# (suficiente para desarrollo y para la demostración académica).
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Tiquetes aéreos <no-responder@tiquetes.local>")
+if os.environ.get("EMAIL_HOST"):
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = os.environ["EMAIL_HOST"]
+    EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+    EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 FOTO_PERFIL_MAX_BYTES = 2 * 1024 * 1024  # 2 MB
 

@@ -1,0 +1,31 @@
+{% extends "base.html" %}{% load ui %}{% block titulo %}Carrito de compras{% endblock %}
+{% block contenido %}
+<h1 class="h2">Carrito de compras</h1>
+{% for i, motivo in invalidas %}<div class="alert alert-warning d-flex justify-content-between align-items-center gap-2"><span>{{ motivo }}</span>
+  <form method="post" action="{% url 'reservas:quitar' i %}">{% csrf_token %}<button class="btn btn-sm btn-outline-dark">Quitar</button></form></div>{% endfor %}
+{% if not lineas and not invalidas %}
+<div class="tarjeta p-5 text-center"><h2 class="h4">Tu carrito está vacío</h2><p class="text-muted">Busca un vuelo y elige «Comprar» para agregarlo.</p><a class="btn btn-primary" href="{% url 'vuelos:busqueda' %}">Buscar vuelos</a></div>
+{% else %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    {% for l in lineas %}<section class="tarjeta p-4 mb-3">
+      <div class="d-flex justify-content-between gap-2"><div>
+        {% for v, tramo in l.tramos %}<div class="mb-2"><span class="codigo">{{ v.codigo }}</span> <span class="badge text-bg-secondary">{% if tramo == 1 %}Ida{% else %}Regreso{% endif %}</span>
+          <div class="fw-semibold">{{ v.origen }} → {{ v.destino }}</div><small class="text-muted">{{ v.salida_local }} · ${{ v.costo_vigente|floatformat:"0g" }} por persona{% if v.en_promocion %} (promoción -{{ v.descuento_porcentaje|floatformat:"-2" }}%){% endif %}</small></div>{% endfor %}
+        <div class="small">{% for p in l.viajeros %}{{ p.nombres }} {{ p.apellidos }}{% if p.clase == 'primera' %} (primera clase){% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}</div></div>
+        <div class="text-end"><div class="fs-5 fw-bold">${{ l.total|floatformat:"0g" }}</div>
+          <form method="post" action="{% url 'reservas:quitar' l.indice %}">{% csrf_token %}<button class="btn btn-link text-danger p-0">Quitar</button></form></div></div>
+    </section>{% endfor %}
+    <a href="{% url 'vuelos:busqueda' %}">Seguir buscando vuelos</a>
+  </div>
+  <div class="col-lg-4"><section class="tarjeta p-4"><h2 class="h5">Pagar</h2>
+    <p class="fs-3 fw-bold mb-3">${{ total|floatformat:"0g" }} <small class="fs-6">COP</small></p>
+    {% if form.errors %}<div class="alert alert-danger" role="alert">{% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}{% for e in form.tarjeta.errors %}<div>{{ e }}</div>{% endfor %}</div>{% endif %}
+    {% if sin_tarjetas %}<p>Necesitas una tarjeta vigente para pagar.</p><a class="btn btn-primary" href="{% url 'finanzas:nueva_tarjeta' %}">Registrar tarjeta</a>
+    {% elif lineas %}<form method="post">{% csrf_token %}{{ form.total }}
+      <label class="form-label" for="{{ form.tarjeta.id_for_label }}">Elige con qué tarjeta pagas</label>{{ form.tarjeta|bs }}
+      <button class="btn btn-primary w-100 mt-3">Pagar ahora</button></form>{% endif %}
+  </section></div>
+</div>
+{% endif %}
+{% endblock %}

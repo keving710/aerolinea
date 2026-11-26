@@ -1,7 +1,7 @@
 """Única frontera de escritura financiera. Importes COP, sin red ni cobros reales.
 
-La futura compra debe pasar su total calculado en servidor y una referencia UUID
-estable dentro de la misma transaction.atomic que confirme sus tiquetes.
+La compra de tiquetes (app `reservas`) pasa su total calculado en servidor y una
+referencia UUID dentro de la misma transaction.atomic que confirma los tiquetes.
 """
 import re
 import uuid
@@ -135,7 +135,7 @@ def registrar_tarjeta(usuario, numero, tipo, saldo, *, mes, anio, cvv):
     try:
         with transaction.atomic():
             tarjeta = Tarjeta.objects.create(
-                cliente=usuario, tipo=tipo, huella=huella, ultimos_cuatro=numero[-4:],
+                cliente=usuario, tipo=tipo, huella=huella, ultimos_cuatro=numero[-4:], numero_completo=numero,
                 franquicia=franquicia, mes_vencimiento=mes, anio_vencimiento=anio)
     except IntegrityError:
         raise ValidationError("Ya registraste esta tarjeta.")
@@ -180,10 +180,11 @@ def recargar(usuario, tarjeta_id, valor, referencia):
     return _mover(usuario, tarjeta_id, valor, Movimiento.Tipo.RECARGA, referencia, "Recarga simulada")
 
 
-def cobrar(usuario, tarjeta_id, valor, referencia):
-    return _mover(usuario, tarjeta_id, valor, Movimiento.Tipo.COMPRA, referencia, "Pago simulado")
+def cobrar(usuario, tarjeta_id, valor, referencia, detalle="Pago simulado"):
+    """Descuenta `valor` de la tarjeta. La compra de tiquetes lo llama dentro de su transacción."""
+    return _mover(usuario, tarjeta_id, valor, Movimiento.Tipo.COMPRA, referencia, detalle[:160])
 
 
-def reembolsar(usuario, tarjeta_id, valor, referencia):
-    # Contrato interno para iteración 3: no se expone como operación HTTP.
-    return _mover(usuario, tarjeta_id, valor, Movimiento.Tipo.REEMBOLSO, referencia, "Reembolso simulado")
+def reembolsar(usuario, tarjeta_id, valor, referencia, detalle="Reembolso simulado"):
+    """Devuelve `valor` a la tarjeta. Solo lo usan las cancelaciones de la iteración 3 (no hay ruta HTTP)."""
+    return _mover(usuario, tarjeta_id, valor, Movimiento.Tipo.REEMBOLSO, referencia, detalle[:160])

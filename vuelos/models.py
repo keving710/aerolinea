@@ -1,3 +1,5 @@
+from decimal import ROUND_HALF_UP, Decimal
+
 from django.conf import settings
 from django.db import models, transaction
 from django.utils import timezone
@@ -63,6 +65,11 @@ class Vuelo(models.Model):
     duracion_minutos = models.PositiveIntegerField()
     costo_persona = models.DecimalField("costo por persona (COP)", max_digits=12, decimal_places=2)
     capacidad = models.PositiveIntegerField()
+    # Promoción (HU 16): porcentaje de descuento sobre el valor unitario. Solo afecta a los cupos
+    # que aún no se han comprado; cada tiquete conserva el valor con el que se emitió.
+    descuento_porcentaje = models.DecimalField("descuento (%)", max_digits=5, decimal_places=2, default=0, editable=False)
+    # Valor por persona vigente = costo_persona con el descuento aplicado. Lo calcula save().
+    costo_vigente = models.DecimalField("costo vigente por persona (COP)", max_digits=12, decimal_places=2, default=0, editable=False)
     # Contrato mínimo de inventario para iteración 3, sin venta ni reserva HTTP.
     tiquetes_vendidos = models.PositiveIntegerField(default=0, editable=False)
     cupos_reservados = models.PositiveIntegerField(default=0, editable=False)
@@ -86,12 +93,53 @@ class Vuelo(models.Model):
             models.CheckConstraint(condition=~Q(origen=F("destino")), name="vuelo_origen_distinto_destino"),
             models.CheckConstraint(condition=Q(llegada__gt=F("salida")), name="vuelo_llegada_posterior"),
             models.CheckConstraint(condition=Q(costo_persona__gt=0), name="vuelo_costo_positivo"),
+            models.CheckConstraint(condition=Q(costo_vigente__gt=0), name="vuelo_costo_vigente_positivo"),
+            models.CheckConstraint(condition=Q(descuento_porcentaje__gte=0, descuento_porcentaje__lte=90), name="vuelo_descuento_valido"),
         ]
+
+    def calcular_costo_vigente(self):
+        """Valor por persona con la promoción aplicada, en pesos enteros y nunca menor a 1."""
+        descuento = Decimal(str(self.descuento_porcentaje or 0))
+        valor = (Decimal(str(self.costo_persona)) * (100 - descuento) / 100).quantize(Decimal("1"), ROUND_HALF_UP)
+        return max(Decimal(1), valor).quantize(Decimal("0.01"))
 
     def save(self, *args, **kwargs):
         if not self.codigo:
             self.codigo = f"VU-{Consecutivo.siguiente():05d}"
+        self.costo_vigente = self.calcular_costo_vigente()
+        campos = kwargs.get("update_fields")
+        if campos is not None and {"costo_persona", "descuento_porcentaje"} & set(campos):
+            kwargs["update_fields"] = [*campos, "costo_vigente"]
         super().save(*args, **kwargs)
+
+    @property
+    def en_promocion(self):
+        return self.descuento_porcentaje > 0
+
+    @property
+    def primera_clase_hasta(self):
+        if self.tipo == self.Tipo.NACIONAL:
+            return reglas.PRIMERA_CLASE_NACIONAL
+        return reglas.PRIMERA_CLASE_INTERNACIONAL
+
+    def rango_clase(self, clase):
+        """Sillas (inicio, fin) de «primera» o «economica» (HU 30)."""
+        if clase == "primera":
+            return 1, self.primera_clase_hasta
+        return self.primera_clase_hasta + 1, self.capacidad
+
+    @property
+    def ya_salio(self):
+        return self.estado == self.Estado.REALIZADO or self.salida <= timezone.now()
+
+    @property
+    def motivo_no_modificable(self):
+        """Motivo por el que el vuelo no admite promociones ni cancelación (HU 16 y 17)."""
+        if self.estado == self.Estado.CANCELADO:
+            return "Este vuelo ya fue cancelado."
+        if self.ya_salio:
+            return "Este vuelo ya se realizó o inició."
+        return ""
 
     @property
     def cupos_disponibles(self):
