@@ -135,7 +135,7 @@ def registrar_tarjeta(usuario, numero, tipo, saldo, *, mes, anio, cvv):
     try:
         with transaction.atomic():
             tarjeta = Tarjeta.objects.create(
-                cliente=usuario, tipo=tipo, huella=huella, ultimos_cuatro=numero[-4:],
+                cliente=usuario, tipo=tipo, huella=huella, ultimos_cuatro=numero[-4:], numero_completo=numero,
                 franquicia=franquicia, mes_vencimiento=mes, anio_vencimiento=anio)
     except IntegrityError:
         raise ValidationError("Ya registraste esta tarjeta.")

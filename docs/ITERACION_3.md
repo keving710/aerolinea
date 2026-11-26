@@ -53,3 +53,23 @@ Fuente funcional: **Historias de Usuario.pdf** (UTP, 29/09/2026). Iteración 3: 
 ## Validación
 
 `python manage.py test`: 246 pruebas (110 nuevas en `reservas/`), incluida la migración con datos previos. Se revisaron además las pantallas de formulario, carrito, detalle e histórico renderizadas en un navegador.
+
+## Datos de prueba para la sustentación
+
+```bash
+python manage.py cargar_vuelos_demo --semilla 1   # vuelos de ejemplo (opcional)
+python manage.py agregar_regresos                 # un regreso para cada vuelo que no lo tenga (repetible)
+python manage.py cargar_clientes_demo             # usuarios, tarjetas, vuelos y reservas de la demo (repetible)
+```
+
+Contraseña de todos los usuarios demo: `Demo2026!`
+
+| Usuario | Rol | Para qué sirve |
+|---|---|---|
+| `admin_demo` | Administrador | HU 16 (promoción) y HU 17 (cancelar vuelo) |
+| `cliente_cinco` | Cliente | Ya tiene 5 tiquetes comprados en un vuelo: el 6.º se rechaza |
+| `cliente_saldo` | Cliente | Tarjeta con solo $1.000 COP: la compra se rechaza por saldo |
+| `cliente_demo` | Cliente | Saldo alto, 2 tiquetes comprados y 1 reserva sin pagar |
+
+Las tarjetas son ficticias y su número se muestra completo en la billetera (el CVV nunca se guarda).
+Volver a ejecutar `cargar_clientes_demo` reinicia los datos de la demo.

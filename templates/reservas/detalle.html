@@ -9,7 +9,7 @@
 {% if reserva.estado == 'reservada' %}<div class="alert alert-info">Tus cupos se retienen hasta el <strong>{{ reserva.expira_en|date:"d/m/Y H:i" }}</strong>. Después se liberan automáticamente si no pagas.</div>
 {% elif reserva.estado == 'vencida' %}<div class="alert alert-warning">Esta reserva venció y sus cupos fueron liberados.</div>
 {% elif reserva.estado == 'cancelada' %}<div class="alert alert-secondary">Cancelada el {{ reserva.cancelada_en|date:"d/m/Y H:i" }}.</div>
-{% elif reserva.estado == 'comprada' %}<div class="alert alert-success">Compra confirmada con la tarjeta •••• {{ reserva.tarjeta.ultimos_cuatro }}. Enviamos el código a cada viajero; lo necesitarán para el check-in.</div>{% endif %}
+{% elif reserva.estado == 'comprada' %}<div class="alert alert-success">Compra confirmada con la tarjeta {{ reserva.tarjeta.numero_visible }}. Enviamos el código a cada viajero; lo necesitarán para el check-in.</div>{% endif %}
 <section class="tarjeta p-3 mb-4">{% include "reservas/_tiquetes.html" %}</section>
 {% if reserva.activa and hay_activos %}
 <div class="row g-3">

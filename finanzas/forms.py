@@ -14,7 +14,7 @@ from .services import FRANQUICIAS_TEXTO, validar_cvv, validar_numero, validar_ve
 class TarjetaForm(forms.Form):
     numero = forms.CharField(
         label="Número de tarjeta ficticia", max_length=25,
-        widget=forms.PasswordInput(attrs={"inputmode": "numeric", "autocomplete": "off"}),
+        widget=forms.TextInput(attrs={"inputmode": "numeric", "autocomplete": "off", "placeholder": "4111 1111 1111 1111"}),
         help_text=f"Solo simulación, no ingreses datos reales. Aceptamos {FRANQUICIAS_TEXTO}; "
                   "la franquicia se detecta con los primeros dígitos.")
     vencimiento = forms.CharField(

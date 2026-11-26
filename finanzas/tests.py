@@ -46,10 +46,12 @@ class FinanzasTests(TestCase):
                 self.assertEqual(self.client.get(ruta).status_code, 403)
                 self.assertEqual(self.client.post(ruta, {}).status_code, 403)
 
-    def test_tarjeta_nunca_conserva_numero_completo(self):
+    def test_tarjeta_guarda_numero_ficticio_visible_pero_no_cvv(self):
         self.assertEqual(self.tarjeta.ultimos_cuatro, "1111")
         self.assertEqual(len(self.tarjeta.huella), 64)
-        self.assertNotIn("4111111111111111", str(self.tarjeta.__dict__))
+        self.assertEqual(self.tarjeta.numero_completo, "4111111111111111")
+        self.assertEqual(self.tarjeta.numero_visible, "4111 1111 1111 1111")
+        self.assertNotIn("123", str(self.tarjeta.__dict__.get("cvv", "")))
         self.assertEqual(self.tarjeta.movimientos.get().tipo, "recarga")
 
     def test_duplicada_normalizada_y_saldo_cero(self):
@@ -160,13 +162,13 @@ class FinanzasTests(TestCase):
         with self.assertRaises(ValidationError):
             services.recargar(self.luz, self.otra.pk, "1", ref)
 
-    def test_pagina_formulario_oculta_referencia_y_numero_en_error(self):
+    def test_pagina_formulario_oculta_referencia_y_conserva_numero_en_error(self):
         response = self.client.get(reverse("finanzas:recargar"))
         self.assertContains(response, 'type="hidden" name="referencia"')
         self.assertNotContains(response, 'for="id_referencia"')
         response = self.client.post(reverse("finanzas:nueva_tarjeta"), {
             "numero": "4000000000000002", "tipo": "credito", "saldo": "-1"})
-        self.assertNotContains(response, "4000000000000002")
+        self.assertContains(response, 'value="4000000000000002"')
         self.assertContains(response, 'aria-invalid="true"')
 
     def test_post_ajeno_no_muta_y_muestra_error(self):
